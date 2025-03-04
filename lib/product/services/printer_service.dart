@@ -87,9 +87,6 @@ class PrinterService {
     buffer.write('\x1B\x40'); // Initialize printer
     buffer.write('\x1B\x74\x12'); // Select PC857 Turkish character set
     buffer.write('\x1B\x52\x12'); // Select international character set (Turkish)
-    
-    buffer.write('\n'); // Başlık öncesi ekstra boşluk
-    
     // Header - Daha büyük ve kalın başlık
     buffer.write('\x1B\x61\x01'); // Center alignment
     buffer.write('\x1B\x21\x38'); // Quadruple size + Double height + Bold
@@ -179,12 +176,7 @@ class PrinterService {
       
       print('✍️ Ürün satırı eklendi');
     }
-
-    buffer.write(doubleLine);
-    print('📝 Alt çizgi eklendi');
-
-    print('💰 Toplam tutar hesaplanıyor: $total TL');
-    
+    buffer.write(doubleLine);    
     // Toplam kısmı - Daha belirgin
     buffer.write('\x1B\x21\x08'); // Font A + Bold
     final totalText = 'TOPLAM:';
@@ -198,16 +190,24 @@ class PrinterService {
 
     // Alt bilgi - Daha estetik
     buffer.write('\x1B\x61\x01'); // Center alignment
-    buffer.write('\x1B\x21\x30'); // Double width + Double height
-    buffer.write('Iyi Calismalar :)\n');
-    buffer.write('\x1B\x21\x01'); // Font B
-    buffer.write('Wifi: fakulteynk\n\n\n\n\n');
+    buffer.write('\x1B\x21\x08'); // 
+        buffer.write('\x1B\x21\x38'); // Quadruple size + Double height + Bold (same as header)
+    buffer.write('Disardan yiyecek ve\n');
+    buffer.write('icecek getirmek yasaktir\n\n');
+        buffer.write('\x1B\x21\x08'); // 
+    buffer.write('Wifi: fakulteynk\n');
 
+    
+    // Yazıcı hızını maksimuma çıkar
+    buffer.write('\x1B\x73\x00'); // Maximum print speed
+    
+    // Tampon belleği temizle ve bekle
+    buffer.write('\x1B\x0C'); // Form feed - buffer flush
+    
+    // Kesme komutu
+    buffer.write('\x1D\x56\x00'); // GS V 0 - Anında kesme
+    
     final content = buffer.toString();
-    print('📏 Oluşturulan fiş içeriği uzunluğu: ${content.length} byte');
-    print('🔍 Fiş içeriği hex formatında:');
-    print(content.split('').map((c) => '\\x${c.codeUnitAt(0).toRadixString(16).padLeft(2, '0')}').join(''));
-
     return content;
   }
 
@@ -311,9 +311,6 @@ class PrinterService {
         for (int i = 0; i < receiptData.length; i++) {
           allBytes.add(receiptData.codeUnitAt(i));
         }
-        
-        // Kesme komutunu ekle
-        allBytes.addAll([0x1D, 0x56, 0x41]); // GS V A
         
         // Tüm byte'ları native belleğe kopyala
         final printData = calloc<Uint8>(allBytes.length);
