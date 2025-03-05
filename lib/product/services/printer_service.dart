@@ -192,8 +192,8 @@ class PrinterService {
     buffer.write('\x1B\x61\x01'); // Center alignment
     buffer.write('\x1B\x21\x08'); // 
         buffer.write('\x1B\x21\x38'); // Quadruple size + Double height + Bold (same as header)
-    buffer.write('Disardan yiyecek ve\n');
-    buffer.write('icecek getirmek yasaktir\n\n');
+    buffer.write('Disaridan Yiyecek ve\n');
+    buffer.write('Icecek Getirmek Yasaktir\n\n');
         buffer.write('\x1B\x21\x08'); // 
     buffer.write('Wifi: fakulteynk\n');
 
