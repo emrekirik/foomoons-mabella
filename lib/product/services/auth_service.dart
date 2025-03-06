@@ -108,11 +108,21 @@ class AuthService {
 
   Future<Map<String, dynamic>> getUserByEmail(String email) async {
     try {
+      final token = await getToken();
+      
+      if (token == null) {
+        return {
+          'success': false,
+          'message': 'Token bulunamadı',
+        };
+      }
+      print('token: $token');
       final response = await http.get(
         Uri.parse('$baseUrl/Users/getuserbyemail?email=$email'),
         headers: {
           'Accept': '*/*',
           'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
         },
       );
 
