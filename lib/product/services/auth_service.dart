@@ -34,13 +34,19 @@ class AuthService {
         final token = responseData['token'];
         final expiration = responseData['expiration'];
 
-        // Token'ı SharedPreferences'a kaydet
+        // Token'ı ve diğer bilgileri SharedPreferences'a kaydet
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', token);
         await prefs.setString('expiration', expiration);
         await prefs.setBool('isLoggedIn', true);
         await prefs.setString('userEmail', email);
 
+        // Kullanıcı bilgilerini al ve userType'ı kaydet
+        final userResult = await getUserByEmail(email);
+        if (userResult['success']) {
+          final userData = userResult['data'];
+          await prefs.setString('userType', userData['userType'] ?? '');
+        }
         // Profile verilerini zorla yenile
         ref.read(profileProvider.notifier).invalidateCache();
         await ref.read(profileProvider.notifier).fetchAndLoad(forceRefresh: true);
@@ -165,5 +171,10 @@ class AuthService {
       throw Exception('BusinessId bulunamadı');
     }
     return businessId;
+  }
+
+  Future<String?> getUserType() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('userType');
   }
 } 

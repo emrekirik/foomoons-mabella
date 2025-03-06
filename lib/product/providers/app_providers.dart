@@ -101,3 +101,10 @@ final loadingProvider =
     StateNotifierProvider<LoadingNotifier, LoadingState>((ref) {
   return LoadingNotifier();
 });
+
+// User type provider
+final userTypeProvider = FutureProvider<String>((ref) async {
+  final authService = ref.watch(authServiceProvider);
+  final userType = await authService.getUserType();
+  return userType ?? 'kafe'; // Default to 'kafe' if not set
+});

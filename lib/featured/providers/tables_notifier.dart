@@ -260,6 +260,13 @@ class TablesNotifier extends StateNotifier<TablesState> {
       return false;
     }
   }
+
+  // Sadece frontend için adisyon güncellemesi
+  void updateTableBill(int tableId, List<Menu> items) {
+    final currentBills = Map<int, List<Menu>>.from(state.tableBills);
+    currentBills[tableId] = items;
+    state = state.copyWith(tableBills: currentBills);
+  }
 }
 
 class TablesState extends Equatable {

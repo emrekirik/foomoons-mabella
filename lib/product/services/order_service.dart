@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:foomoons/product/init/config/app_environment.dart';
 import 'package:foomoons/product/model/order.dart';
+import 'package:foomoons/product/model/menu.dart';
 import 'package:http/http.dart' as http;
 import 'package:foomoons/product/services/auth_service.dart';
 
@@ -30,6 +31,41 @@ class OrderService {
     } catch (e) {
       print('API hatası: $e');
       return [];
+    }
+  }
+
+  Future<bool> addOrder(Menu item, String tableTitle) async {
+    try {
+      final businessId = await _authService.getValidatedBusinessId();
+      
+      final requestBody = {
+        'piece': item.piece ?? 1,
+        'orderDate': DateTime.now().toIso8601String(),
+        'preprationTime': DateTime.now().toIso8601String(),
+        'price': item.price ?? 0.0,
+        'productId': item.id ?? 0,
+        'tableTitle': tableTitle,
+        'title': item.title ?? '',
+        'status': 'hazırlanıyor',
+        'businessId': businessId,
+        'customerMessage': '',
+        'orderType': 'mutfak',
+      };
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/orders/add'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(requestBody),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        return responseData['success'] == true;
+      }
+      return false;
+    } catch (e) {
+      print('Sipariş ekleme hatası: $e');
+      return false;
     }
   }
 

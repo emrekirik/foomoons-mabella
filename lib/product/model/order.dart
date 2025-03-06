@@ -144,6 +144,25 @@ class Order with EquatableMixin, IdModel {
 
 
   static Order fromJson(Map<String, dynamic> json) {
+    Timestamp? parseOrderDate(dynamic value) {
+      if (value == null) return null;
+      try {
+        if (value is Timestamp) return value;
+        if (value is String) {
+          final date = DateTime.parse(value);
+          // Ensure the date is not before 1970 to avoid invalid timestamps
+          if (date.isBefore(DateTime(1970))) {
+            return Timestamp.now();
+          }
+          return Timestamp.fromDate(date);
+        }
+        return null;
+      } catch (e) {
+        print('Error parsing orderDate: $e');
+        return null;
+      }
+    }
+
     return Order(
       id: json['id'] as int?,
       title: json['title'] as String?,
@@ -158,11 +177,7 @@ class Order with EquatableMixin, IdModel {
       tableTitle: json['tableTitle'] as String?,
       status: json['status'] as String?,
       productId: json['productId'] != null ? (json['productId'] as num).toInt() : null,
-      orderDate: json['orderDate'] != null
-          ? (json['orderDate'] is String
-              ? Timestamp.fromDate(DateTime.parse(json['orderDate'] as String))
-              : json['orderDate'] as Timestamp)
-          : null,
+      orderDate: parseOrderDate(json['orderDate']),
       businessId: json['businessId'] != null ? (json['businessId'] as num).toInt() : null,
       customerMessage: json['customerMessage'] as String?,
       orderType: json['orderType'] as String?,

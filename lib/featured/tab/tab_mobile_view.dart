@@ -27,13 +27,15 @@ final initialIndexProvider = Provider<int>((ref) {
 // Navigation items provider
 final navigationItemsProvider = Provider<List<NavigationRailDestination>>((ref) {
   final isSelfService = ref.watch(selfServiceProvider);
-  return _buildNavigationItems('kafe', isSelfService);
+  final userType = ref.watch(userTypeProvider).value ?? 'kafe';
+  return _buildNavigationItems(userType, isSelfService);
 });
 
 // Page views provider
 final pageViewsProvider = Provider<List<Widget>>((ref) {
   final isSelfService = ref.watch(selfServiceProvider);
-  return _buildPageViews('kafe', isSelfService);
+  final userType = ref.watch(userTypeProvider).value ?? 'kafe';
+  return _buildPageViews(userType, isSelfService);
 });
 
 class TabMobileView extends ConsumerStatefulWidget {
@@ -56,11 +58,7 @@ class _TabMobileViewState extends ConsumerState<TabMobileView>
   @override
   void initState() {
     super.initState();
-    final providedIndex = widget.initialTabIndex;
-    final defaultIndex = ref.read(initialIndexProvider);
-    print('🔍 TabMobileView initState - Provided Index: $providedIndex, Default Index: $defaultIndex'); // Debug print
-    _tabIndex = providedIndex ?? defaultIndex;
-    print('🔍 Final _tabIndex value: $_tabIndex'); // Debug print
+    _initializeTabIndex();
     _pageController = PageController(initialPage: _tabIndex);
     Future.microtask(() {
       final profileState = ref.read(profileProvider);
@@ -69,6 +67,11 @@ class _TabMobileViewState extends ConsumerState<TabMobileView>
         ref.read(profileProvider.notifier).fetchAndLoad();
       }
     });
+  }
+
+  void _initializeTabIndex() {
+    final providedIndex = widget.initialTabIndex;
+    _tabIndex = providedIndex ?? 0; // Her zaman 0'dan başla
   }
 
   void _onTabChanged(int index) {
@@ -81,120 +84,116 @@ class _TabMobileViewState extends ConsumerState<TabMobileView>
   @override
   Widget build(BuildContext context) {
     double deviceWidth = MediaQuery.of(context).size.width;
-/*     if (userDetails == null) {
-      // Kullanıcı bilgileri yüklenmemişse gösterilecek içerik
-      return const SizedBox();
-    } */
-    const String userType = 'kafe';
+    final userTypeValue = ref.watch(userTypeProvider);
 
-    // Provider'lardan navigation items ve page views'ı al
-    final navigationItems = ref.watch(navigationItemsProvider);
-    final pageViews = ref.watch(pageViewsProvider);
-
-    return Container(
-      color: ColorConstants.white,
-      child: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: Scaffold(
-                backgroundColor: ColorConstants.white,
-                extendBody: true,
-                appBar: const PreferredSize(
-                  preferredSize: Size.fromHeight(70.0),
-                  child: CustomAppbar(
-                    userType: userType,
-                    showDrawer: true,
-                    showBackButton: false,
+    return userTypeValue.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, stack) => Center(child: Text('Error: $err')),
+      data: (userType) => Container(
+        color: ColorConstants.white,
+        child: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: Scaffold(
+                  backgroundColor: ColorConstants.white,
+                  extendBody: true,
+                  appBar: PreferredSize(
+                    preferredSize: const Size.fromHeight(70.0),
+                    child: CustomAppbar(
+                      userType: userType,
+                      showDrawer: true,
+                      showBackButton: false,
+                    ),
                   ),
-                ),
-                drawer: Drawer(
-                  backgroundColor: Colors.white,
-                  width: deviceWidth * 0.20,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.zero,
-                  ),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Colors.white,
-                          Color(0xFFF8F9FA),
+                  drawer: Drawer(
+                    backgroundColor: Colors.white,
+                    width: deviceWidth * 0.20,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.zero,
+                    ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Colors.white,
+                            Color(0xFFF8F9FA),
+                          ],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 0),
+                          ),
                         ],
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 0),
+                      child: NavigationRail(
+                        selectedIndex: _tabIndex,
+                        groupAlignment: groupAlignment,
+                        onDestinationSelected: (int index) {
+                          setState(() {
+                            _onTabChanged(index);
+                          });
+                        },
+                        backgroundColor: Colors.transparent,
+                        labelType: labelType,
+                        useIndicator: true,
+                        indicatorColor: Colors.orange.withOpacity(0.1),
+                        selectedIconTheme: const IconThemeData(
+                          color: Colors.orange,
+                          size: 20,
                         ),
-                      ],
-                    ),
-                    child: NavigationRail(
-                      selectedIndex: _tabIndex,
-                      groupAlignment: groupAlignment,
-                      onDestinationSelected: (int index) {
-                        setState(() {
-                          _onTabChanged(index);
-                        });
-                      },
-                      backgroundColor: Colors.transparent,
-                      labelType: labelType,
-                      useIndicator: true,
-                      indicatorColor: Colors.orange.withOpacity(0.1),
-                      selectedIconTheme: const IconThemeData(
-                        color: Colors.orange,
-                        size: 20,
+                        unselectedIconTheme: const IconThemeData(
+                          color: Color(0xFF37474F),
+                          size: 20,
+                        ),
+                        selectedLabelTextStyle: GoogleFonts.poppins(
+                          color: Colors.orange,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 11,
+                        ),
+                        unselectedLabelTextStyle: GoogleFonts.poppins(
+                          color: Color(0xFF37474F),
+                          fontWeight: FontWeight.w500,
+                          fontSize: 11,
+                        ),
+                        leading: showLeading
+                            ? FloatingActionButton(
+                                elevation: 0,
+                                onPressed: () {
+                                  // Add your onPressed code here!
+                                },
+                                child: const Icon(Icons.add),
+                              )
+                            : const SizedBox(),
+                        trailing: showTrailing
+                            ? IconButton(
+                                onPressed: () {
+                                  // Add your onPressed code here!
+                                },
+                                icon: const Icon(Icons.more_horiz_rounded),
+                              )
+                            : const SizedBox(),
+                        destinations: ref.watch(navigationItemsProvider),
                       ),
-                      unselectedIconTheme: const IconThemeData(
-                        color: Color(0xFF37474F),
-                        size: 20,
-                      ),
-                      selectedLabelTextStyle: GoogleFonts.poppins(
-                        color: Colors.orange,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 11,
-                      ),
-                      unselectedLabelTextStyle: GoogleFonts.poppins(
-                        color: Color(0xFF37474F),
-                        fontWeight: FontWeight.w500,
-                        fontSize: 11,
-                      ),
-                      leading: showLeading
-                          ? FloatingActionButton(
-                              elevation: 0,
-                              onPressed: () {
-                                // Add your onPressed code here!
-                              },
-                              child: const Icon(Icons.add),
-                            )
-                          : const SizedBox(),
-                      trailing: showTrailing
-                          ? IconButton(
-                              onPressed: () {
-                                // Add your onPressed code here!
-                              },
-                              icon: const Icon(Icons.more_horiz_rounded),
-                            )
-                          : const SizedBox(),
-                      destinations: navigationItems,
                     ),
                   ),
+                  body: PageView(
+                      controller: _pageController,
+                      physics: const NeverScrollableScrollPhysics(),
+                      onPageChanged: (index) {
+                        setState(() {
+                          _tabIndex = index;
+                        });
+                      },
+                      children: ref.watch(pageViewsProvider)),
                 ),
-                body: PageView(
-                    controller: _pageController,
-                    physics: const NeverScrollableScrollPhysics(),
-                    onPageChanged: (index) {
-                      setState(() {
-                        _tabIndex = index;
-                      });
-                    },
-                    children: pageViews),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -219,17 +218,40 @@ List<NavigationRailDestination> _buildNavigationItems(String userType, bool isSe
     );
   }
 
-  if (userType == 'çalışan') {
+  if (userType == 'admin') {
     return [
+      NavigationRailDestination(
+        icon: const Icon(Icons.table_bar_outlined),
+        selectedIcon: const Icon(Icons.table_bar_outlined),
+        label: buildLabel('Adisyonlar'),
+      ),
       NavigationRailDestination(
         icon: const Icon(Icons.monitor_rounded),
         selectedIcon: const Icon(Icons.monitor_rounded),
         label: buildLabel('Siparişler'),
       ),
       NavigationRailDestination(
+        icon: const Icon(Icons.restaurant_menu_sharp),
+        selectedIcon: const Icon(Icons.restaurant_menu),
+        label: buildLabel('Menu'),
+      ),
+      NavigationRailDestination(
+        icon: const Icon(Icons.insert_chart_outlined_rounded),
+        selectedIcon: const Icon(Icons.insert_chart_outlined_rounded),
+        label: buildLabel('Raporlar'),
+      ),
+    ];
+  } else if (userType == 'garson') {
+    return [
+      NavigationRailDestination(
         icon: const Icon(Icons.table_bar_outlined),
         selectedIcon: const Icon(Icons.table_bar_outlined),
         label: buildLabel('Adisyonlar'),
+      ),
+      NavigationRailDestination(
+        icon: const Icon(Icons.restaurant_menu_sharp),
+        selectedIcon: const Icon(Icons.restaurant_menu),
+        label: buildLabel('Menu'),
       ),
     ];
   } else if (userType == 'kafe') {
@@ -270,27 +292,41 @@ List<NavigationRailDestination> _buildNavigationItems(String userType, bool isSe
         ),
       ];
     }
-  } else {
-    return [];
   }
+  return []; // Default empty list for unsupported user types
 }
 
 List<Widget> _buildPageViews(String userType, bool isSelfService) {
-  if (isSelfService) {
-    // Self-service modunda Raporlar ve Menu sayfaları
+  if (userType == 'admin') {
     return [
+      TablesMobileView(isSelfService: isSelfService),
+      const AdminMobileView(),
+      const MenuMobileView(),
       const ReportsMobileView(),
+    ];
+  } else if (userType == 'garson') {
+    return [
+      TablesMobileView(isSelfService: isSelfService),
       const MenuMobileView(),
     ];
+  } else if (userType == 'kafe') {
+    if (isSelfService) {
+      // Self-service modunda Raporlar ve Menu sayfaları
+      return [
+        const ReportsMobileView(),
+        const MenuMobileView(),
+      ];
+    }
+    
+    // Normal modda tüm sayfalar yeni sıralama ile
+    return [
+      TablesMobileView(isSelfService: isSelfService),
+      const AdminMobileView(),
+      const MenuMobileView(),
+      const ReportsMobileView(),
+    ];
   }
-  
-  // Normal modda tüm sayfalar yeni sıralama ile
-  return [
-    TablesMobileView(isSelfService: isSelfService),
-    const AdminMobileView(),
-    const MenuMobileView(),
-    const ReportsMobileView(),
-  ];
+  return []; // Default empty list for unsupported user types
 }
 
 class SideShadowPainter extends CustomPainter {

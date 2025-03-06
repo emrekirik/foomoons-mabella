@@ -25,7 +25,7 @@ class CustomAppbar extends ConsumerStatefulWidget {
 class _CustomAppbarState extends ConsumerState<CustomAppbar> {
   void _handleMenuSelection(String value, BuildContext context) async {
     if (!mounted) return;
-    
+
     switch (value) {
       case 'Profile':
         if (context.mounted) {
@@ -51,14 +51,14 @@ class _CustomAppbarState extends ConsumerState<CustomAppbar> {
               ),
             ),
           );
-          
+
           // Logout işlemini gerçekleştir
           await ref.read(loginProvider.notifier).signOut();
-          
+
           // Loading dialog'u kapat
           if (context.mounted) {
             Navigator.pop(context); // Dialog'u kapat
-            
+
             // Login sayfasına yönlendir
             await Navigator.of(context).pushReplacement(
               MaterialPageRoute(
@@ -140,11 +140,10 @@ class _CustomAppbarState extends ConsumerState<CustomAppbar> {
                   offset: const Offset(0, 8),
                   onSelected: (value) => _handleMenuSelection(value, context),
                   itemBuilder: (context) => <PopupMenuEntry<String>>[
-                    if (widget.userType == 'kafe')
-                      const PopupMenuItem<String>(
-                        value: 'Profile',
-                        child: Text('Profile'),
-                      ),
+                    const PopupMenuItem<String>(
+                      value: 'Profile',
+                      child: Text('Profile'),
+                    ),
                     const PopupMenuItem<String>(
                       value: 'Logout',
                       child: Text('Logout'),
