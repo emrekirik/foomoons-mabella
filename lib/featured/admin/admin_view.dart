@@ -48,12 +48,10 @@ class _AdminViewState extends ConsumerState<AdminView> {
         .toList();
     final preparingOrders =
         orders.where((order) => order.status == 'hazırlanıyor').toList();
-    final kitchenOrders = preparingOrders
-        .where((order) => order.orderType == 'kitchen')
-        .toList();
-    final barOrders = preparingOrders
-        .where((order) => order.orderType == 'bar')
-        .toList();
+    final kitchenOrders =
+        preparingOrders.where((order) => order.orderType == 'Mutfak').toList();
+    final barOrders =
+        preparingOrders.where((order) => order.orderType == 'Bar').toList();
     final pastOrders = orders
         .where((order) =>
             order.status == 'teslim edildi' || order.status == 'iptal edildi')
@@ -100,7 +98,7 @@ class _AdminViewState extends ConsumerState<AdminView> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-            'Hazırlanıyor',
+                          'Hazırlanıyor',
                           style: GoogleFonts.poppins(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -130,10 +128,12 @@ class _AdminViewState extends ConsumerState<AdminView> {
                           child: Column(
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8),
                                 decoration: BoxDecoration(
                                   border: Border(
-                                    bottom: BorderSide(color: Colors.grey[200]!),
+                                    bottom:
+                                        BorderSide(color: Colors.grey[200]!),
                                   ),
                                 ),
                                 child: Text(
@@ -146,95 +146,118 @@ class _AdminViewState extends ConsumerState<AdminView> {
                               ),
                               Expanded(
                                 child: kitchenOrders.isEmpty
-                                  ? Center(
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Icon(Icons.inbox_outlined,
-                                              size: 36, color: Colors.grey[400]),
-                                          const SizedBox(height: 6),
-                                          Text(
-                                            'Şu anda siparişiniz yok',
-                                            style: GoogleFonts.poppins(
-                                              color: Colors.grey[600],
-                                              fontSize: 13,
+                                    ? Center(
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Icon(Icons.inbox_outlined,
+                                                size: 36,
+                                                color: Colors.grey[400]),
+                                            const SizedBox(height: 6),
+                                            Text(
+                                              'Şu anda siparişiniz yok',
+                                              style: GoogleFonts.poppins(
+                                                color: Colors.grey[600],
+                                                fontSize: 13,
+                                              ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
+                                      )
+                                    : ListView.separated(
+                                        itemCount: kitchenOrders.length,
+                                        padding: const EdgeInsets.all(8),
+                                        separatorBuilder: (context, index) =>
+                                            const SizedBox(height: 6),
+                                        itemBuilder: (context, index) {
+                                          final item = kitchenOrders[index];
+                                          return Container(
+                                            padding: const EdgeInsets.all(8),
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey[50],
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              border: Border.all(
+                                                  color: Colors.grey
+                                                      .withOpacity(0.1)),
+                                            ),
+                                            child: Column(
+                                              children: [
+                                                IntrinsicHeight(
+                                                  child: Row(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      Expanded(
+                                                        flex: 2,
+                                                        child:
+                                                            _buildOrderDetailTile(
+                                                          '',
+                                                          item.title ?? '',
+                                                          Icons.restaurant_menu,
+                                                        ),
+                                                      ),
+                                                      Container(
+                                                        width: 80,
+                                                        alignment:
+                                                            Alignment.center,
+                                                        child:
+                                                            _buildOrderDetailTile(
+                                                          '',
+                                                          '${item.piece} adet',
+                                                          Icons
+                                                              .format_list_numbered,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 6),
+                                                IntrinsicHeight(
+                                                  child: Row(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      _buildOrderDetailTile(
+                                                        '',
+                                                        item.orderDate != null
+                                                            ? formatTimestamp(
+                                                                item.orderDate!,
+                                                                'hazırlanıyor')
+                                                            : '--:--',
+                                                        Icons.access_time,
+                                                      ),
+                                                      const SizedBox(width: 8),
+                                                      Expanded(
+                                                        child:
+                                                            _buildOrderDetailTile(
+                                                          '',
+                                                          item.tableTitle ??
+                                                              'Bilinmiyor',
+                                                          Icons
+                                                              .table_restaurant,
+                                                        ),
+                                                      ),
+                                                      Container(
+                                                        alignment: Alignment
+                                                            .centerRight,
+                                                        child:
+                                                            _buildActionButtons(
+                                                                item,
+                                                                'teslim edildi',
+                                                                'hazırlanıyor'),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
                                       ),
-                                    )
-                                  : ListView.separated(
-                                      itemCount: kitchenOrders.length,
-                                      padding: const EdgeInsets.all(8),
-                                      separatorBuilder: (context, index) =>
-                                          const SizedBox(height: 6),
-                                      itemBuilder: (context, index) {
-                                        final item = kitchenOrders[index];
-                                        return Container(
-                                          padding: const EdgeInsets.all(8),
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey[50],
-                                            borderRadius: BorderRadius.circular(12),
-                                            border: Border.all(color: Colors.grey.withOpacity(0.1)),
-                                          ),
-                                          child: Column(
-                                            children: [
-                                              IntrinsicHeight(
-                                                child: Row(
-                                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                                  children: [
-                                                    Expanded(
-                                                      flex: 2,
-                                                      child: _buildOrderDetailTile(
-                                                        '',
-                                                        item.title ?? '',
-                                                        Icons.restaurant_menu,
-                                                      ),
-                                                    ),
-                                                    Container(
-                                                      width: 80,
-                                                      alignment: Alignment.center,
-                                                      child: _buildOrderDetailTile(
-                                                        '',
-                                                        '${item.piece} adet',
-                                                        Icons.format_list_numbered,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              const SizedBox(height: 6),
-                                              IntrinsicHeight(
-                                                child: Row(
-                                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                                  children: [
-                                                    _buildOrderDetailTile(
-                                                      '',
-                                                      item.orderDate != null
-                                                          ? formatTimestamp(item.orderDate!, 'hazırlanıyor')
-                                                          : '--:--',
-                                                      Icons.access_time,
-                                                    ),
-                                                    const SizedBox(width: 8),
-                                                    Expanded(
-                                                      child: _buildOrderDetailTile(
-                                                        '',
-                                                        item.tableTitle ?? 'Bilinmiyor',
-                                                        Icons.table_restaurant,
-                                                      ),
-                                                    ),
-                                                    Container(
-                                                      alignment: Alignment.centerRight,
-                                                      child: _buildActionButtons(item, 'teslim edildi', 'hazırlanıyor'),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      },
-                                    ),
                               ),
                             ],
                           ),
@@ -244,10 +267,12 @@ class _AdminViewState extends ConsumerState<AdminView> {
                           child: Column(
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8),
                                 decoration: BoxDecoration(
                                   border: Border(
-                                    bottom: BorderSide(color: Colors.grey[200]!),
+                                    bottom:
+                                        BorderSide(color: Colors.grey[200]!),
                                   ),
                                 ),
                                 child: Text(
@@ -260,95 +285,118 @@ class _AdminViewState extends ConsumerState<AdminView> {
                               ),
                               Expanded(
                                 child: barOrders.isEmpty
-                                  ? Center(
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Icon(Icons.inbox_outlined,
-                                              size: 36, color: Colors.grey[400]),
-                                          const SizedBox(height: 6),
-                                          Text(
-                                            'Şu anda siparişiniz yok',
-                                            style: GoogleFonts.poppins(
-                                              color: Colors.grey[600],
-                                              fontSize: 13,
+                                    ? Center(
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Icon(Icons.inbox_outlined,
+                                                size: 36,
+                                                color: Colors.grey[400]),
+                                            const SizedBox(height: 6),
+                                            Text(
+                                              'Şu anda siparişiniz yok',
+                                              style: GoogleFonts.poppins(
+                                                color: Colors.grey[600],
+                                                fontSize: 13,
+                                              ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
+                                      )
+                                    : ListView.separated(
+                                        itemCount: barOrders.length,
+                                        padding: const EdgeInsets.all(8),
+                                        separatorBuilder: (context, index) =>
+                                            const SizedBox(height: 6),
+                                        itemBuilder: (context, index) {
+                                          final item = barOrders[index];
+                                          return Container(
+                                            padding: const EdgeInsets.all(8),
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey[50],
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              border: Border.all(
+                                                  color: Colors.grey
+                                                      .withOpacity(0.1)),
+                                            ),
+                                            child: Column(
+                                              children: [
+                                                IntrinsicHeight(
+                                                  child: Row(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      Expanded(
+                                                        flex: 2,
+                                                        child:
+                                                            _buildOrderDetailTile(
+                                                          '',
+                                                          item.title ?? '',
+                                                          Icons.restaurant_menu,
+                                                        ),
+                                                      ),
+                                                      Container(
+                                                        width: 80,
+                                                        alignment:
+                                                            Alignment.center,
+                                                        child:
+                                                            _buildOrderDetailTile(
+                                                          '',
+                                                          '${item.piece} adet',
+                                                          Icons
+                                                              .format_list_numbered,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 6),
+                                                IntrinsicHeight(
+                                                  child: Row(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      _buildOrderDetailTile(
+                                                        '',
+                                                        item.orderDate != null
+                                                            ? formatTimestamp(
+                                                                item.orderDate!,
+                                                                'hazırlanıyor')
+                                                            : '--:--',
+                                                        Icons.access_time,
+                                                      ),
+                                                      const SizedBox(width: 8),
+                                                      Expanded(
+                                                        child:
+                                                            _buildOrderDetailTile(
+                                                          '',
+                                                          item.tableTitle ??
+                                                              'Bilinmiyor',
+                                                          Icons
+                                                              .table_restaurant,
+                                                        ),
+                                                      ),
+                                                      Container(
+                                                        alignment: Alignment
+                                                            .centerRight,
+                                                        child:
+                                                            _buildActionButtons(
+                                                                item,
+                                                                'teslim edildi',
+                                                                'hazırlanıyor'),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
                                       ),
-                                    )
-                                  : ListView.separated(
-                                      itemCount: barOrders.length,
-                                      padding: const EdgeInsets.all(8),
-                                      separatorBuilder: (context, index) =>
-                                          const SizedBox(height: 6),
-                                      itemBuilder: (context, index) {
-                                        final item = barOrders[index];
-                                        return Container(
-                                          padding: const EdgeInsets.all(8),
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey[50],
-                                            borderRadius: BorderRadius.circular(12),
-                                            border: Border.all(color: Colors.grey.withOpacity(0.1)),
-                                          ),
-                                          child: Column(
-                                            children: [
-                                              IntrinsicHeight(
-                                                child: Row(
-                                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                                  children: [
-                                                    Expanded(
-                                                      flex: 2,
-                                                      child: _buildOrderDetailTile(
-                                                        '',
-                                                        item.title ?? '',
-                                                        Icons.restaurant_menu,
-                                                      ),
-                                                    ),
-                                                    Container(
-                                                      width: 80,
-                                                      alignment: Alignment.center,
-                                                      child: _buildOrderDetailTile(
-                                                        '',
-                                                        '${item.piece} adet',
-                                                        Icons.format_list_numbered,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              const SizedBox(height: 6),
-                                              IntrinsicHeight(
-                                                child: Row(
-                                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                                  children: [
-                                                    _buildOrderDetailTile(
-                                                      '',
-                                                      item.orderDate != null
-                                                          ? formatTimestamp(item.orderDate!, 'hazırlanıyor')
-                                                          : '--:--',
-                                                      Icons.access_time,
-                                                    ),
-                                                    const SizedBox(width: 8),
-                                                    Expanded(
-                                                      child: _buildOrderDetailTile(
-                                                        '',
-                                                        item.tableTitle ?? 'Bilinmiyor',
-                                                        Icons.table_restaurant,
-                                                      ),
-                                                    ),
-                                                    Container(
-                                                      alignment: Alignment.centerRight,
-                                                      child: _buildActionButtons(item, 'teslim edildi', 'hazırlanıyor'),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      },
-                                    ),
                               ),
                             ],
                           ),
@@ -362,7 +410,8 @@ class _AdminViewState extends ConsumerState<AdminView> {
           ),
           const SizedBox(width: 12),
           _buildOrderColumn(context, 'Geçmiş Siparişler', pastOrders,
-              'teslim edildi', menus, 'hazır', showRefresh: false),
+              'teslim edildi', menus, 'hazır',
+              showRefresh: false),
         ],
       ),
     );
@@ -418,7 +467,8 @@ class _AdminViewState extends ConsumerState<AdminView> {
                       icon: AnimatedRotation(
                         duration: const Duration(milliseconds: 1000),
                         turns: isRefreshing ? 1 : 0,
-                        child: Icon(Icons.refresh, size: 20, color: Colors.grey[600]),
+                        child: Icon(Icons.refresh,
+                            size: 20, color: Colors.grey[600]),
                       ),
                       onPressed: isRefreshing ? null : _refreshData,
                     ),
@@ -601,11 +651,12 @@ class _AdminViewState extends ConsumerState<AdminView> {
                       await ref.read(adminProvider.notifier).updateOrderStatus(
                             item,
                             nextStatus,
-                            orderType: 'kitchen',
+                            orderType: 'Mutfak',
                           );
-                      
+
                       // Sonra mutfak fişini yazdır
-                      await KitchenPrinterService.printKitchenOrder(item.toJson());
+                      await KitchenPrinterService.printKitchenOrder(
+                          item.toJson());
                     }
                   },
           ),
@@ -631,9 +682,9 @@ class _AdminViewState extends ConsumerState<AdminView> {
                       await ref.read(adminProvider.notifier).updateOrderStatus(
                             item,
                             nextStatus,
-                            orderType: 'bar',
+                            orderType: 'Bar',
                           );
-                      
+
                       // Sonra bar fişini yazdır
                       await BarPrinterService.printBarOrder(item.toJson());
                     }
@@ -653,52 +704,269 @@ class _AdminViewState extends ConsumerState<AdminView> {
               color: Colors.red[600],
               size: 18,
             ),
-            onPressed: () {
-              if (item.id != null) {
-                ref
-                    .read(adminProvider.notifier)
-                    .updateOrderStatus(item, 'iptal edildi');
-              }
-            },
-          ),
-        ],
-        if (nextStatus == 'teslim edildi')
-          ElevatedButton(
             onPressed: isProcessing
                 ? null
                 : () async {
-                    setState(() {
-                      isProcessing = true;
-                    });
-                    try {
-                      await ref
+                    final bool? confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return Dialog(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Container(
+                            width: 400,
+                            padding: const EdgeInsets.all(32),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Sipariş İptali',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black,
+                                        letterSpacing: -0.5,
+                                      ),
+                                    ),
+                                    IconButton(
+                                      onPressed: () => Navigator.pop(context, false),
+                                      icon: Icon(
+                                        Icons.close,
+                                        color: Colors.grey[400],
+                                        size: 24,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 24),
+                                Text(
+                                  'Bu siparişi iptal etmek istediğinizden emin misiniz?',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    color: Colors.grey[700],
+                                  ),
+                                ),
+                                const SizedBox(height: 32),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context, false),
+                                      child: Text(
+                                        'Vazgeç',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 16,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.red,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 24,
+                                          vertical: 12,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                      ),
+                                      onPressed: () => Navigator.pop(context, true),
+                                      child: Text(
+                                        'İptal Et',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 16,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+
+                    if (confirm == true && item.id != null) {
+                      ref
                           .read(adminProvider.notifier)
-                          .updateOrderStatus(item, nextStatus);
-                      await Future.delayed(const Duration(milliseconds: 500));
-                    } finally {
-                      if (mounted) {
-                        setState(() {
-                          isProcessing = false;
-                        });
-                      }
+                          .updateOrderStatus(item, 'iptal edildi');
                     }
                   },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+          ),
+        ],
+        if (nextStatus == 'teslim edildi')
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.red[50],
+                  minimumSize: const Size(36, 36),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                icon: Icon(
+                  Icons.close,
+                  color: Colors.red[600],
+                  size: 18,
+                ),
+                onPressed: isProcessing
+                    ? null
+                    : () async {
+                        final bool? confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return Dialog(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Container(
+                                width: 400,
+                                padding: const EdgeInsets.all(32),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          'Sipariş İptali',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.black,
+                                            letterSpacing: -0.5,
+                                          ),
+                                        ),
+                                        IconButton(
+                                          onPressed: () => Navigator.pop(context, false),
+                                          icon: Icon(
+                                            Icons.close,
+                                            color: Colors.grey[400],
+                                            size: 24,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 24),
+                                    Text(
+                                      'Bu siparişi iptal etmek istediğinizden emin misiniz?',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 16,
+                                        color: Colors.grey[700],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 32),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(context, false),
+                                          child: Text(
+                                            'Vazgeç',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 16,
+                                              color: Colors.grey[600],
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.red,
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 24,
+                                              vertical: 12,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                          ),
+                                          onPressed: () => Navigator.pop(context, true),
+                                          child: Text(
+                                            'İptal Et',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 16,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        );
+
+                        if (confirm == true && item.id != null) {
+                          ref
+                              .read(adminProvider.notifier)
+                              .updateOrderStatus(item, 'iptal edildi');
+                        }
+                      },
               ),
-            ),
-            child: Text(
-              'Hazır',
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
+              const SizedBox(width: 8),
+              ElevatedButton(
+                onPressed: isProcessing
+                    ? null
+                    : () async {
+                        setState(() {
+                          isProcessing = true;
+                        });
+                        try {
+                          await ref
+                              .read(adminProvider.notifier)
+                              .updateOrderStatus(item, nextStatus);
+                          await Future.delayed(
+                              const Duration(milliseconds: 500));
+                        } finally {
+                          if (mounted) {
+                            setState(() {
+                              isProcessing = false;
+                            });
+                          }
+                        }
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  elevation: 0,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text(
+                  'Hazır',
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
       ],
     );

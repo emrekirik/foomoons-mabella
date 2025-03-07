@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:foomoons/product/providers/app_providers.dart';
 import 'package:flutter/rendering.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class BillMobileView extends ConsumerStatefulWidget {
   final int tableId;
@@ -112,26 +113,124 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
             final tableBill = ref.read(tablesProvider).getTableBill(widget.tableId);
             final userType = ref.read(userTypeProvider).value ?? 'kafe';
             
-            if (tableBill.isNotEmpty && userType == 'garson') {
-              final result = await showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Dikkat'),
-                  content: const Text('Bekleyen siparişler var. Çıkmak istediğinize emin misiniz?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(false),
-                      child: const Text('Hayır'),
+            if (userType == 'garson') {
+              // Debug için siparişlerin durumunu kontrol et
+              print('Tüm siparişler:');
+              for (var item in tableBill) {
+                print('Ürün: ${item.title}, Status: ${item.status}');
+              }
+              
+              // Yeni siparişleri kontrol et (status değeri null veya 'yeni' olanlar)
+              final newOrders = tableBill.where((item) => 
+                item.status == null || // Status null ise
+                item.status == '' || // Status boş string ise
+                item.status == 'yeni' // Status 'yeni' ise
+              ).toList();
+              
+              print('Yeni sipariş sayısı: ${newOrders.length}');
+              
+              if (newOrders.isNotEmpty) {
+                final result = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => Dialog(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(true),
-                      child: const Text('Evet'),
+                    child: Container(
+                      width: 400,
+                      padding: const EdgeInsets.all(32),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Dikkat',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black,
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                              IconButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                icon: Icon(
+                                  Icons.close,
+                                  color: Colors.grey[400],
+                                  size: 24,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            '${newOrders.length} adet bekleyen yeni sipariş var. Çıkmak istediğinizden emin misiniz?',
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: Text(
+                                  'Vazgeç',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                    vertical: 12,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                onPressed: () => Navigator.pop(context, true),
+                                child: Text(
+                                  'Çık',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
-                ),
-              );
-              if (result == true && context.mounted) {
-                ref.read(tablesProvider.notifier).updateTableBill(widget.tableId, []);
+                  ),
+                );
+                if (result == true && context.mounted) {
+                  // Sadece yeni siparişleri temizle
+                  final existingOrders = tableBill.where((item) => 
+                    item.status != null && 
+                    item.status != '' && 
+                    item.status != 'yeni'
+                  ).toList();
+                  ref.read(tablesProvider.notifier).updateTableBill(widget.tableId, existingOrders);
+                  Navigator.of(context).pop();
+                }
+              } else {
+                // Yeni sipariş yoksa direkt çık
                 Navigator.of(context).pop();
               }
             } else if (context.mounted) {
@@ -164,26 +263,108 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                             final tableBill = ref.read(tablesProvider).getTableBill(widget.tableId);
                             final userType = ref.read(userTypeProvider).value ?? 'kafe';
                             
-                            if (tableBill.isNotEmpty && userType == 'garson') {
-                              final result = await showDialog<bool>(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: const Text('Dikkat'),
-                                  content: const Text('Bekleyen siparişler var. Çıkmak istediğinize emin misiniz?'),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.of(context).pop(false),
-                                      child: const Text('Hayır'),
+                            if (userType == 'garson') {
+                              // Yeni siparişleri kontrol et
+                              final newOrders = tableBill.where((item) => item.status == 'yeni').toList();
+                              
+                              if (newOrders.isNotEmpty) {
+                                final result = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) => Dialog(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
                                     ),
-                                    TextButton(
-                                      onPressed: () => Navigator.of(context).pop(true),
-                                      child: const Text('Evet'),
+                                    child: Container(
+                                      width: 400,
+                                      padding: const EdgeInsets.all(32),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                'Dikkat',
+                                                style: GoogleFonts.poppins(
+                                                  fontSize: 24,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.black,
+                                                  letterSpacing: -0.5,
+                                                ),
+                                              ),
+                                              IconButton(
+                                                onPressed: () => Navigator.pop(context, false),
+                                                icon: Icon(
+                                                  Icons.close,
+                                                  color: Colors.grey[400],
+                                                  size: 24,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 24),
+                                          Text(
+                                            '${newOrders.length} adet bekleyen yeni sipariş var. Çıkmak istediğinizden emin misiniz?',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 16,
+                                              color: Colors.grey[700],
+                                            ),
+                                          ),
+                                          const SizedBox(height: 32),
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.end,
+                                            children: [
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(context, false),
+                                                child: Text(
+                                                  'Vazgeç',
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 16,
+                                                    color: Colors.grey[600],
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 16),
+                                              ElevatedButton(
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: Colors.red,
+                                                  padding: const EdgeInsets.symmetric(
+                                                    horizontal: 24,
+                                                    vertical: 12,
+                                                  ),
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(12),
+                                                  ),
+                                                ),
+                                                onPressed: () => Navigator.pop(context, true),
+                                                child: Text(
+                                                  'Çık',
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 16,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ],
-                                ),
-                              );
-                              if (result == true && context.mounted) {
-                                ref.read(tablesProvider.notifier).updateTableBill(widget.tableId, []);
+                                  ),
+                                );
+                                if (result == true && context.mounted) {
+                                  // Sadece yeni siparişleri temizle
+                                  final existingOrders = tableBill.where((item) => item.status != 'yeni').toList();
+                                  ref.read(tablesProvider.notifier).updateTableBill(widget.tableId, existingOrders);
+                                  Navigator.of(context).pop();
+                                }
+                              } else {
+                                // Yeni sipariş yoksa direkt çık
                                 Navigator.of(context).pop();
                               }
                             } else if (context.mounted) {
@@ -571,8 +752,23 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                                                       curve: Curves.easeOut,
                                                     ),
                                                     child: ListTile(
-                                                      title:
-                                                          Text(item.title ?? ''),
+                                                      title: Text(
+                                                        item.title ?? '',
+                                                        style: TextStyle(
+                                                          fontWeight: item.status == 'yeni' 
+                                                              ? FontWeight.bold 
+                                                              : FontWeight.normal,
+                                                        ),
+                                                      ),
+                                                      tileColor: item.status == 'yeni' 
+                                                          ? Colors.orange.withOpacity(0.1)
+                                                          : null,
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius: BorderRadius.circular(8),
+                                                        side: item.status == 'yeni'
+                                                            ? const BorderSide(color: Colors.orange, width: 1)
+                                                            : BorderSide.none,
+                                                      ),
                                                       subtitle: Column(
                                                         crossAxisAlignment:
                                                             CrossAxisAlignment
@@ -584,6 +780,15 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                                                               '${item.piece ?? 1} adet'),
                                                           Text(
                                                               '₺${(item.price ?? 0) * (item.piece ?? 1)}'),
+                                                          if (item.status == 'yeni')
+                                                            const Text(
+                                                              'Yeni Sipariş',
+                                                              style: TextStyle(
+                                                                color: Colors.orange,
+                                                                fontSize: 12,
+                                                                fontWeight: FontWeight.bold,
+                                                              ),
+                                                            ),
                                                         ],
                                                       ),
                                                       trailing: Row(
@@ -692,25 +897,28 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
             child: OutlinedButton(
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: Colors.transparent),
-                backgroundColor: tableBill.isNotEmpty
+                backgroundColor: tableBill.where((item) => item.status == 'yeni').isNotEmpty
                     ? Colors.green
                     : Colors.grey,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(28),
                 ),
               ),
-              onPressed: (tableBill.isNotEmpty && !isSending)
+              onPressed: (tableBill.where((item) => item.status == 'yeni').isNotEmpty && !isSending)
                   ? () async {
                       setState(() {
                         isSending = true;
                       });
                       
-                      // Garson için tüm ürünleri tek tek API'ye gönder
+                      // Sadece yeni eklenen (status'u 'yeni' olan) ürünleri filtrele
+                      final newOrders = tableBill.where((item) => item.status == 'yeni').toList();
+                      
+                      // Garson için sadece yeni ürünleri API'ye gönder
                       final orderService = ref.read(orderServiceProvider);
                       bool hasError = false;
                       int successCount = 0;
                       
-                      for (var item in tableBill) {
+                      for (var item in newOrders) {
                         try {
                           final success = await orderService.addOrder(item, widget.tableTitle);
                           if (success) {
@@ -732,20 +940,21 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                       }
 
                       if (context.mounted) {
-                        if (successCount == tableBill.length) {
+                        if (successCount == newOrders.length) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Siparişler başarıyla gönderildi!'),
+                              content: Text('Yeni siparişler başarıyla gönderildi!'),
                               backgroundColor: Colors.green,
                             ),
                           );
-                          // Başarılı gönderimden sonra listeyi temizle
-                          ref.read(tablesProvider.notifier).updateTableBill(widget.tableId, []);
+                          // Başarılı gönderimden sonra sadece yeni siparişleri temizle
+                          final existingOrders = tableBill.where((item) => item.status != 'yeni').toList();
+                          ref.read(tablesProvider.notifier).updateTableBill(widget.tableId, existingOrders);
                           Navigator.pop(context);
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('$successCount sipariş gönderildi, ${tableBill.length - successCount} sipariş gönderilemedi!'),
+                              content: Text('$successCount yeni sipariş gönderildi, ${newOrders.length - successCount} sipariş gönderilemedi!'),
                               backgroundColor: Colors.orange,
                             ),
                           );

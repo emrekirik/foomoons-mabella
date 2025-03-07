@@ -44,7 +44,8 @@ class ProductService {
         'status': newProduct.status,
         'stock': 0, // backend'de null olamaz verilmiş
         'title': newProduct.title,
-        'businessId': businessId
+        'businessId': businessId,
+        'orderType': newProduct.orderType
       });
 
       final response = await http.post(url,
@@ -73,7 +74,8 @@ class ProductService {
         'status': product.status,
         'stock': product.stock ?? 0,
         'title': product.title,
-        'businessId': businessId
+        'businessId': businessId,
+        'orderType': product.orderType
       });
 
       final response = await http.post(

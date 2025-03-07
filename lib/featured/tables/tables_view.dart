@@ -4,12 +4,14 @@ import 'package:foomoons/featured/responsive/responsive_layout.dart';
 import 'package:foomoons/featured/tables/dialogs/add_area_dialog.dart';
 import 'package:foomoons/featured/tables/dialogs/add_table_dialog.dart';
 import 'package:foomoons/product/constants/color_constants.dart';
+import 'package:foomoons/product/model/area.dart';
 import 'package:foomoons/product/model/menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:foomoons/product/providers/app_providers.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:foomoons/featured/providers/tables_notifier.dart';
 
 /// Menu Provider
 
@@ -271,20 +273,48 @@ class _TablesViewState extends ConsumerState<TablesView>
                                   ),
                                   child: Material(
                                     color: ColorConstants.white,
-                                    child: InkWell(
-                                      splashColor:
-                                          Colors.orange.withOpacity(0.6),
-                                      onTap: () {
-                                        tablesNotifier.selectArea(area.title);
-                                      },
-                                      child: Center(
-                                        child: Text(
-                                          area.title ?? '',
-                                          style: GoogleFonts.poppins(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w500),
+                                    child: Stack(
+                                      children: [
+                                        InkWell(
+                                          splashColor:
+                                              Colors.orange.withOpacity(0.6),
+                                          onTap: () {
+                                            tablesNotifier.selectArea(area.title);
+                                          },
+                                          child: Center(
+                                            child: Text(
+                                              area.title ?? '',
+                                              style: GoogleFonts.poppins(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w500),
+                                            ),
+                                          ),
                                         ),
-                                      ),
+                                        if (isEditMode)
+                                          Positioned(
+                                            right: 4,
+                                            top: 4,
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                color: Colors.orange.withOpacity(0.1),
+                                                borderRadius: BorderRadius.circular(4),
+                                              ),
+                                              child: IconButton(
+                                                padding: const EdgeInsets.all(4),
+                                                constraints: const BoxConstraints(),
+                                                icon: const Icon(
+                                                  Icons.edit,
+                                                  size: 16,
+                                                  color: Colors.orange,
+                                                ),
+                                                onPressed: () {
+                                                  _showEditAreaDialog(context, area, tablesNotifier);
+                                                },
+                                                tooltip: 'Bölge Adını Düzenle',
+                                              ),
+                                            ),
+                                          ),
+                                      ],
                                     ),
                                   ),
                                 );
@@ -930,5 +960,307 @@ class _TablesViewState extends ConsumerState<TablesView>
   double _calculateRemainingAmount(
       double totalAmount, double negativeAmount, double urunBazliOdenenToplam) {
     return totalAmount - negativeAmount - urunBazliOdenenToplam;
+  }
+
+  Future<void> _showEditAreaDialog(BuildContext context, Area area, TablesNotifier tablesNotifier) async {
+    final TextEditingController areaController = TextEditingController(text: area.title);
+
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Container(
+            width: 400,
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Bölge Düzenle',
+                      style: GoogleFonts.poppins(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: Icon(
+                        Icons.close,
+                        color: Colors.grey[400],
+                        size: 24,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: areaController,
+                  decoration: InputDecoration(
+                    hintText: 'Bölge ismini girin',
+                    hintStyle: GoogleFonts.poppins(
+                      color: Colors.grey[400],
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey[50],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Colors.grey[200]!,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Colors.grey[200]!,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Colors.orange,
+                      ),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
+                  ),
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Delete button
+                    IconButton(
+                      onPressed: () async {
+                        final shouldDelete = await showDialog<bool>(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text(
+                                'Bölgeyi Sil',
+                                style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              content: Text(
+                                'Bu bölgeyi silmek istediğinize emin misiniz? Bu işlem geri alınamaz ve bölgedeki tüm masalar silinecektir.',
+                                style: GoogleFonts.poppins(),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(false),
+                                  child: Text(
+                                    'İptal',
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(true),
+                                  child: Text(
+                                    'Sil',
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+
+                        if (shouldDelete == true) {
+                          // Show loading dialog
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (context) => Center(
+                              child: LoadingAnimationWidget.flickr(
+                                leftDotColor: const Color(0xFFFF8A00),
+                                rightDotColor: const Color(0xFF00B761),
+                                size: 45,
+                              ),
+                            ),
+                          );
+
+                          try {
+                            final result = await tablesNotifier.deleteArea(area.id!);
+                            
+                            // Close loading dialog
+                            Navigator.of(context).pop();
+                            
+                            if (result) {
+                              Navigator.of(context).pop(); // Close edit dialog
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Bölge başarıyla silindi',
+                                    style: GoogleFonts.poppins(),
+                                  ),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                              await _fetchData(); // Verileri yenile
+                            } else {
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Bölge silinirken bir hata oluştu',
+                                    style: GoogleFonts.poppins(),
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            // Close loading dialog
+                            Navigator.of(context).pop();
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Bölge silinirken bir hata oluştu: $e',
+                                  style: GoogleFonts.poppins(),
+                                ),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        }
+                      },
+                      icon: Icon(
+                        Icons.delete_outline,
+                        color: Colors.red[400],
+                        size: 24,
+                      ),
+                      tooltip: 'Bölgeyi Sil',
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text(
+                            'İptal',
+                            style: GoogleFonts.poppins(
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: () async {
+                            final newAreaName = areaController.text.trim();
+                            if (newAreaName.isNotEmpty && newAreaName != area.title) {
+                              try {
+                                // Yükleme animasyonunu göster
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (context) => Center(
+                                    child: LoadingAnimationWidget.flickr(
+                                      leftDotColor: const Color(0xFFFF8A00),
+                                      rightDotColor: const Color(0xFF00B761),
+                                      size: 45,
+                                    ),
+                                  ),
+                                );
+
+                                final result = await tablesNotifier.updateArea(
+                                  area: area,
+                                  newAreaName: newAreaName,
+                                );
+
+                                // Yükleme animasyonunu kapat
+                                Navigator.of(context).pop();
+
+                                if (result) {
+                                  Navigator.of(context).pop(); // Close edit dialog
+                                  if (!context.mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'Bölge adı başarıyla güncellendi',
+                                        style: GoogleFonts.poppins(),
+                                      ),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
+                                } else {
+                                  if (!context.mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'Bölge adı güncellenirken bir hata oluştu',
+                                        style: GoogleFonts.poppins(),
+                                      ),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
+                              } catch (e) {
+                                // Yükleme animasyonunu kapat
+                                Navigator.of(context).pop();
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Bölge adı güncellenirken bir hata oluştu: $e',
+                                      style: GoogleFonts.poppins(),
+                                    ),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                          child: Text(
+                            'Kaydet',
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }

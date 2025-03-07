@@ -66,6 +66,110 @@ class MenuNotifier extends StateNotifier<MenuState> {
     state = state.copyWith(categories: [...?state.categories, newCategory]);
   }
 
+  Future<void> updateCategory(Category category, String oldTitle, BuildContext context) async {
+    try {
+      final categoryService = ref.read(categoryServiceProvider);
+      final productService = ref.read(productServiceProvider);
+      
+      // Update the category
+      final updatedCategory = await categoryService.updateCategory(category);
+      
+      // Update the categories list
+      final updatedCategories = state.categories?.map((c) {
+        return c.id == category.id ? updatedCategory : c;
+      }).toList();
+      
+      // Update all products that belong to this category
+      final updatedProducts = state.products?.map((product) async {
+        if (product.category == oldTitle) {
+          final updatedProduct = product.copyWith(category: updatedCategory.title);
+          return await productService.updateProduct(updatedProduct);
+        }
+        return product;
+      }).toList();
+
+      // If the updated category was selected, update the selected value
+      final newSelectedValue = state.selectedValue == oldTitle 
+          ? updatedCategory.title 
+          : state.selectedValue;
+
+      if (updatedProducts != null) {
+        final products = await Future.wait(updatedProducts);
+        state = state.copyWith(
+          categories: updatedCategories,
+          products: products,
+          selectedValue: newSelectedValue,
+        );
+      } else {
+        state = state.copyWith(
+          categories: updatedCategories,
+          selectedValue: newSelectedValue,
+        );
+      }
+      
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Kategori başarıyla güncellendi')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Kategori güncellenirken hata oluştu: $e')),
+        );
+      }
+      _handleError(e, 'Kategori güncelleme hatası');
+    }
+  }
+
+  Future<void> deleteCategory(Category category, BuildContext context) async {
+    try {
+      final categoryService = ref.read(categoryServiceProvider);
+      final productService = ref.read(productServiceProvider);
+
+      // Delete all products in this category first
+      if (state.products != null) {
+        final productsToDelete = state.products!.where((p) => p.category == category.title).toList();
+        for (var product in productsToDelete) {
+          if (product.id != null) {
+            await productService.deleteProduct(product.id!);
+          }
+        }
+      }
+
+      // Then delete the category
+      if (category.id != null) {
+        await categoryService.deleteCategory(category.id!);
+      }
+
+      // Update state
+      final updatedCategories = state.categories?.where((c) => c.id != category.id).toList();
+      final updatedProducts = state.products?.where((p) => p.category != category.title).toList();
+
+      // Reset selected value if the deleted category was selected
+      final newSelectedValue = state.selectedValue == category.title ? null : state.selectedValue;
+
+      state = state.copyWith(
+        categories: updatedCategories,
+        products: updatedProducts,
+        selectedValue: newSelectedValue,
+      );
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Kategori ve ilgili ürünler başarıyla silindi')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Kategori silinirken hata oluştu: $e')),
+        );
+      }
+      _handleError(e, 'Kategori silme hatası');
+    }
+  }
+
   Future<void> addProduct(Menu newProduct) async {
     try {
       final productService = ref.read(productServiceProvider);

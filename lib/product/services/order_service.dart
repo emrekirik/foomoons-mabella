@@ -36,7 +36,15 @@ class OrderService {
 
   Future<bool> addOrder(Menu item, String tableTitle) async {
     try {
+      print('🛎️ Yeni sipariş ekleme başlatıldı:');
+      print('📋 Ürün: ${item.title}');
+      print('🏷️ Masa: $tableTitle');
+      print('🔢 Adet: ${item.piece ?? 1}');
+      print('💰 Fiyat: ${item.price ?? 0.0}');
+      print('🏪 Bölüm: ${item.orderType ?? 'Bar'}');
+      
       final businessId = await _authService.getValidatedBusinessId();
+      print('🏢 İşletme ID: $businessId');
       
       final requestBody = {
         'piece': item.piece ?? 1,
@@ -49,8 +57,11 @@ class OrderService {
         'status': 'hazırlanıyor',
         'businessId': businessId,
         'customerMessage': '',
-        'orderType': 'mutfak',
+        'orderType': item.orderType ?? 'Bar',
       };
+
+      print('📤 API isteği gönderiliyor...');
+      print('📦 İstek içeriği: ${json.encode(requestBody)}');
 
       final response = await http.post(
         Uri.parse('$baseUrl/orders/add'),
@@ -58,13 +69,23 @@ class OrderService {
         body: json.encode(requestBody),
       );
 
+      print('📥 API yanıtı - Status Code: ${response.statusCode}');
+      print('📄 API yanıtı - Body: ${response.body}');
+
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
-        return responseData['success'] == true;
+        final success = responseData['success'] == true;
+        if (success) {
+          print('✅ Sipariş başarıyla eklendi');
+        } else {
+          print('❌ Sipariş eklenemedi: ${responseData['message'] ?? 'Bilinmeyen hata'}');
+        }
+        return success;
       }
+      print('❌ Sipariş eklenemedi: HTTP ${response.statusCode}');
       return false;
     } catch (e) {
-      print('Sipariş ekleme hatası: $e');
+      print('💥 Sipariş ekleme hatası: $e');
       return false;
     }
   }

@@ -51,4 +51,22 @@ class AreaService {
       throw Exception('Bölge eklerken hata oluştu: $e');
     }
   }
+
+  Future<bool> deleteArea(int areaId) async {
+    try {
+      final businessId = await _authService.getValidatedBusinessId();
+      final url = Uri.parse('$baseUrl/Areas/deletebyid?id=$areaId');
+      final response = await http.post(
+        url,
+        headers: {'accept': '*/*'},
+      );
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        throw Exception('Bölge silinirken hata oluştu: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Bölge silinirken hata oluştu: $e');
+    }
+  }
 }

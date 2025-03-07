@@ -18,6 +18,7 @@ class Menu with EquatableMixin, IdModel {
   final bool? isAmount;
   final int? tableId; // Added tableId field
   final int? billId;  // Added billId field
+  final String? orderType; // Added orderType field
 
   const Menu(
       {this.title,
@@ -32,7 +33,8 @@ class Menu with EquatableMixin, IdModel {
       this.isCredit,
       this.isAmount,
       this.tableId,
-      this.billId}); // Added tableId and billId to constructor
+      this.billId,
+      this.orderType}); // Added orderType to constructor
 
   @override
   List<Object?> get props => [
@@ -44,11 +46,12 @@ class Menu with EquatableMixin, IdModel {
         category,
         id,
         stock,
-        piece, // Listeye ekleyin
+        piece,
         isCredit,
         isAmount,
-        tableId, // Added to props
-        billId // Added to props
+        tableId,
+        billId,
+        orderType
       ];
 
   @override
@@ -64,10 +67,11 @@ class Menu with EquatableMixin, IdModel {
         other.category == category &&
         other.id == id &&
         other.stock == stock &&
-        other.piece == piece && // Eşitlik kontrolüne ekleyin
+        other.piece == piece &&
         other.isCredit == isCredit &&
         other.tableId == tableId &&
-        other.billId == billId; // Added to equality check
+        other.billId == billId &&
+        other.orderType == orderType;
   }
 
   @override
@@ -83,7 +87,8 @@ class Menu with EquatableMixin, IdModel {
         piece.hashCode ^
         isCredit.hashCode ^
         tableId.hashCode ^
-        billId.hashCode; // Added to hashCode
+        billId.hashCode ^
+        orderType.hashCode;
   }
 
   /// Copy this instance with new values, while preserving existing ones if not provided
@@ -96,11 +101,12 @@ class Menu with EquatableMixin, IdModel {
     String? category,
     int? id,
     int? stock,
-    int? piece, // copyWith methoduna ekleyin
+    int? piece,
     bool? isCredit,
     bool? isAmount,
-    int? tableId, // Added to copyWith
-    int? billId,  // Added to copyWith
+    int? tableId,
+    int? billId,
+    String? orderType,
   }) {
     return Menu(
         title: title ?? this.title,
@@ -111,11 +117,12 @@ class Menu with EquatableMixin, IdModel {
         category: category ?? this.category,
         id: id ?? this.id,
         stock: stock ?? this.stock,
-        piece: piece ?? this.piece, // Değer atama yapın
+        piece: piece ?? this.piece,
         isCredit: isCredit ?? this.isCredit,
         isAmount: isAmount ?? this.isAmount,
         tableId: tableId ?? this.tableId,
-        billId: billId ?? this.billId); // Added to copyWith return
+        billId: billId ?? this.billId,
+        orderType: orderType ?? this.orderType);
   }
 
   /// Convert this Menu instance to a JSON map
@@ -129,11 +136,12 @@ class Menu with EquatableMixin, IdModel {
       // 'preparationTime': preparationTime,
       'category': category,
       'stock': stock,
-      'piece': piece, // JSON dönüşümüne ekleyin
+      'piece': piece,
       'isCredit': isCredit,
       'isAmount': isAmount,
-      'tableId': tableId, // Added to toJson
-      'billId': billId // Added to toJson
+      'tableId': tableId,
+      'billId': billId,
+      'orderType': orderType
     };
   }
 
@@ -150,11 +158,12 @@ class Menu with EquatableMixin, IdModel {
         //     : null,
         category: json['category'] as String?,
         stock: _parseToInt(json['stock']),
-        piece: _parseToInt(json['piece']), // JSON'dan `piece` değerini alın
+        piece: _parseToInt(json['piece']),
         isCredit: json['isCredit'] as bool?,
         isAmount: json['isAmount'] as bool?,
         tableId: _parseToInt(json['tableId']),
-        billId: _parseToInt(json['billId'])); // Added to fromJson
+        billId: _parseToInt(json['billId']),
+        orderType: json['orderType'] as String?);
   }
 
   /// Helper method to safely parse price values to int
@@ -182,6 +191,7 @@ class Menu with EquatableMixin, IdModel {
         'isCredit: $isCredit, '
         'isAmount: $isAmount, '
         'tableId: $tableId, '
-        'billId: $billId)';
+        'billId: $billId, '
+        'orderType: $orderType)';
   }
 }

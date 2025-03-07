@@ -122,11 +122,12 @@ class TablesNotifier extends StateNotifier<TablesState> {
     state = state.copyWith(tables: tables);
   }
 
-  Future<void> addTable(CoffeTable table) async {
+  Future<CoffeTable> addTable(CoffeTable table) async {
     final tableService = ref.read(tableServiceProvider);
     final addedTable = await tableService.addTable(table);
     state = state.copyWith(tables: [...?state.tables, addedTable]);
     invalidateCache(); // Cache'i temizle çünkü veri değişti
+    return addedTable;
   }
 
   Future<void> fetchAreas() async {
@@ -153,29 +154,6 @@ class TablesNotifier extends StateNotifier<TablesState> {
       );
     } catch (e) {
       _handleError(e, 'Masa adisyonu çekerken hata oluştu');
-    }
-  }
-
-  Future<String> generateQRCode(String tableId) async {
-    try {
-      final authService = ref.read(authServiceProvider);
-      final businessId = await authService.getBusinessId();
-      // businessId ve tableId'yi şifreliyoruz
-      final String token =
-          base64Encode(utf8.encode('businessId:$businessId,tableId:$tableId'));
-
-      final Uri menuUrl = Uri(
-        scheme: 'http',
-        host: 'foomoons.com', // veya IP adresi
-        path: '/menu/', // API'nin path kısmı
-      );
-      final String finalUrl = '$menuUrl#/?token=$token';
-      print(finalUrl);
-
-      return finalUrl;
-    } catch (e) {
-      print('QR kod oluşturma hatası: $e');
-      rethrow;
     }
   }
 
@@ -257,6 +235,79 @@ class TablesNotifier extends StateNotifier<TablesState> {
       return result;
     } catch (e) {
       print('Masa birleştirme hatası: $e');
+      return false;
+    }
+  }
+
+  Future<bool> updateArea({required Area area, required String newAreaName}) async {
+    try {
+      final tableService = ref.read(tableServiceProvider);
+      final result = await tableService.updateArea(
+        area: area,
+        newAreaName: newAreaName,
+        generateQRCode: tableService.generateQRUrl,
+      );
+
+      if (result.success && result.data != null) {
+        // Güncel area bilgisini state'e yansıt
+        final updatedArea = result.data!;
+        state = state.copyWith(
+          areas: state.areas?.map((a) => a.id == updatedArea.id ? updatedArea : a).toList(),
+          // Eğer seçili alan güncellenen alan ise, seçili alanı da güncelle
+          selectedValue: state.selectedValue == area.title ? newAreaName : state.selectedValue,
+          // Güncel masa bilgilerini state'e yansıt
+          tables: result.updatedTables ?? state.tables,
+        );
+        return true;
+      }
+
+      return false;
+    } catch (e) {
+      print('❌ HATA: Alan güncellenirken bir sorun oluştu:');
+      print('❌ $e');
+      return false;
+    }
+  }
+
+  Future<bool> deleteArea(int areaId) async {
+    try {
+      // First, find the area and its tables
+      final areaToDelete = state.areas?.firstWhere((area) => area.id == areaId);
+      if (areaToDelete == null) return false;
+
+      final tablesToDelete = state.tables?.where((table) => table.area == areaToDelete.title).toList() ?? [];
+      
+      // Delete all tables in the area
+      final tableService = ref.read(tableServiceProvider);
+      for (final table in tablesToDelete) {
+        if (table.id != null) {
+          await tableService.deleteTable(table.id!);
+        }
+      }
+
+      // Then delete the area
+      final areaService = ref.read(areaServiceProvider);
+      final result = await areaService.deleteArea(areaId);
+      
+      if (result) {
+        // Update local state - remove the area and its tables
+        state = state.copyWith(
+          areas: state.areas?.where((area) => area.id != areaId).toList(),
+          tables: state.tables?.where((table) => table.area != areaToDelete.title).toList(),
+          // If the deleted area was selected, select the first available area
+          selectedValue: state.selectedValue == areaToDelete.title
+              ? (state.areas?.where((area) => area.id != areaId).firstOrNull?.title)
+              : state.selectedValue,
+          // Remove all table bills for the deleted tables
+          tableBills: {...state.tableBills}..removeWhere((key, _) => 
+            tablesToDelete.any((table) => table.id == key)),
+        );
+        return true;
+      }
+      return false;
+    } catch (e) {
+      print('❌ HATA: Alan silinirken bir sorun oluştu:');
+      print('❌ $e');
       return false;
     }
   }

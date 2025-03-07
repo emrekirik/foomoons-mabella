@@ -27,6 +27,7 @@ class _MenuMobileViewState extends ConsumerState<MenuMobileView> {
   late TextEditingController categoryController;
   String searchQuery = '';
   bool isUploading = false;
+  String? orderType;
 
   void _showTopSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -466,6 +467,53 @@ class _MenuMobileViewState extends ConsumerState<MenuMobileView> {
                           ),
                         ),
                         const SizedBox(height: 20),
+                        Text(
+                          'Sipariş Tipi',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[50],
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: DropdownButtonFormField<String>(
+                            decoration: const InputDecoration(
+                              border: InputBorder.none,
+                            ),
+                            icon: Icon(Icons.arrow_drop_down,
+                                color: Colors.grey[600]),
+                            isExpanded: true,
+                            dropdownColor: Colors.white,
+                            menuMaxHeight: 200,
+                            hint: Text(
+                              'Sipariş tipi seçin',
+                              style: TextStyle(color: Colors.grey[600]),
+                            ),
+                            items: ['Mutfak', 'Bar',].map((type) {
+                              return DropdownMenuItem<String>(
+                                value: type,
+                                child: Text(
+                                  type,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                orderType = value;
+                              });
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 20),
                         Row(
                           children: [
                             Expanded(
@@ -517,6 +565,7 @@ class _MenuMobileViewState extends ConsumerState<MenuMobileView> {
                                           image:
                                               ref.watch(menuProvider).photoURL,
                                           category: categoryController.text,
+                                          orderType: orderType,
                                         );
 
                                         await menuNotifier

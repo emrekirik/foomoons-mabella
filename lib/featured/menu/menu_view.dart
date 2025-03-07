@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:foomoons/product/providers/app_providers.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 /// MenuView Widget
 class MenuView extends ConsumerStatefulWidget {
@@ -132,6 +133,9 @@ class _MenuViewState extends ConsumerState<MenuView> {
                                               ),
                                       ),
                                     ),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
                                     child: TextButton(
                                       style: TextButton.styleFrom(
                                         overlayColor: Colors.grey[200],
@@ -164,6 +168,261 @@ class _MenuViewState extends ConsumerState<MenuView> {
                                           ),
                                         ),
                                       ),
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: Icon(
+                                            Icons.edit_outlined,
+                                            size: 16,
+                                            color: Colors.grey[600],
+                                          ),
+                                          onPressed: () {
+                                            showDialog(
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                final titleController = TextEditingController(text: category.title);
+                                                return Dialog(
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(20),
+                                                  ),
+                                                  child: Container(
+                                                    width: 400,
+                                                    padding: const EdgeInsets.all(32),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white,
+                                                      borderRadius: BorderRadius.circular(20),
+                                                    ),
+                                                    child: Column(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        Row(
+                                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                          children: [
+                                                            Text(
+                                                              'Kategori Düzenle',
+                                                              style: GoogleFonts.poppins(
+                                                                fontSize: 20,
+                                                                fontWeight: FontWeight.w600,
+                                                                color: Colors.black,
+                                                                letterSpacing: -0.5,
+                                                              ),
+                                                            ),
+                                                            IconButton(
+                                                              onPressed: () => Navigator.pop(context),
+                                                              icon: Icon(
+                                                                Icons.close,
+                                                                color: Colors.grey[400],
+                                                                size: 20,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        const SizedBox(height: 16),
+                                                        Text(
+                                                          'Kategori İsmi',
+                                                          style: GoogleFonts.poppins(
+                                                            fontSize: 14,
+                                                            fontWeight: FontWeight.w500,
+                                                            color: Colors.grey[700],
+                                                          ),
+                                                        ),
+                                                        const SizedBox(height: 6),
+                                                        TextField(
+                                                          controller: titleController,
+                                                          decoration: InputDecoration(
+                                                            hintText: 'Kategori ismini girin',
+                                                            hintStyle: GoogleFonts.poppins(
+                                                              color: Colors.grey[400],
+                                                              fontSize: 14,
+                                                            ),
+                                                            filled: true,
+                                                            fillColor: Colors.grey[50],
+                                                            border: OutlineInputBorder(
+                                                              borderRadius: BorderRadius.circular(8),
+                                                              borderSide: BorderSide(
+                                                                color: Colors.grey[200]!,
+                                                              ),
+                                                            ),
+                                                            enabledBorder: OutlineInputBorder(
+                                                              borderRadius: BorderRadius.circular(8),
+                                                              borderSide: BorderSide(
+                                                                color: Colors.grey[200]!,
+                                                              ),
+                                                            ),
+                                                            focusedBorder: OutlineInputBorder(
+                                                              borderRadius: BorderRadius.circular(8),
+                                                              borderSide: const BorderSide(
+                                                                color: Colors.black,
+                                                              ),
+                                                            ),
+                                                            contentPadding: const EdgeInsets.symmetric(
+                                                              horizontal: 12,
+                                                              vertical: 12,
+                                                            ),
+                                                          ),
+                                                          style: GoogleFonts.poppins(
+                                                            fontSize: 14,
+                                                          ),
+                                                        ),
+                                                        const SizedBox(height: 24),
+                                                        Row(
+                                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                          children: [
+                                                            IconButton(
+                                                              onPressed: () async {
+                                                                // Show confirmation dialog
+                                                                final shouldDelete = await showDialog<bool>(
+                                                                  context: context,
+                                                                  builder: (context) => AlertDialog(
+                                                                    title: Text(
+                                                                      'Kategoriyi Sil',
+                                                                      style: GoogleFonts.poppins(
+                                                                        fontWeight: FontWeight.w600,
+                                                                      ),
+                                                                    ),
+                                                                    content: Text(
+                                                                      'Bu kategori ve kategoriye bağlı tüm ürünler silinecek. Emin misiniz?',
+                                                                      style: GoogleFonts.poppins(),
+                                                                    ),
+                                                                    actions: [
+                                                                      TextButton(
+                                                                        onPressed: () => Navigator.pop(context, false),
+                                                                        child: Text(
+                                                                          'İptal',
+                                                                          style: GoogleFonts.poppins(),
+                                                                        ),
+                                                                      ),
+                                                                      TextButton(
+                                                                        onPressed: () => Navigator.pop(context, true),
+                                                                        style: TextButton.styleFrom(
+                                                                          foregroundColor: Colors.red,
+                                                                        ),
+                                                                        child: Text(
+                                                                          'Sil',
+                                                                          style: GoogleFonts.poppins(),
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                );
+
+                                                                if (shouldDelete == true) {
+                                                                  // Show loading dialog
+                                                                  showDialog(
+                                                                    context: context,
+                                                                    barrierDismissible: false,
+                                                                    builder: (context) => Center(
+                                                                      child: LoadingAnimationWidget.flickr(
+                                                                        leftDotColor: const Color(0xFFFF8A00),
+                                                                        rightDotColor: const Color(0xFF00B761),
+                                                                        size: 45,
+                                                                      ),
+                                                                    ),
+                                                                  );
+
+                                                                  await menuNotifier.deleteCategory(category, context);
+                                                                  
+                                                                  if (context.mounted) {
+                                                                    Navigator.pop(context); // Close loading dialog
+                                                                    Navigator.pop(context); // Close edit dialog
+                                                                  }
+                                                                }
+                                                              },
+                                                              icon: Icon(
+                                                                Icons.delete_outline,
+                                                                color: Colors.red[400],
+                                                                size: 24,
+                                                              ),
+                                                              padding: EdgeInsets.zero,
+                                                            ),
+                                                            Row(
+                                                              children: [
+                                                                TextButton(
+                                                                  onPressed: () => Navigator.pop(context),
+                                                                  child: Text(
+                                                                    'İptal',
+                                                                    style: GoogleFonts.poppins(
+                                                                      fontSize: 14,
+                                                                      color: Colors.grey[600],
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                const SizedBox(width: 12),
+                                                                ElevatedButton(
+                                                                  style: ElevatedButton.styleFrom(
+                                                                    backgroundColor: Colors.orange,
+                                                                    padding: const EdgeInsets.symmetric(
+                                                                      horizontal: 16,
+                                                                      vertical: 8,
+                                                                    ),
+                                                                    shape: RoundedRectangleBorder(
+                                                                      borderRadius: BorderRadius.circular(8),
+                                                                    ),
+                                                                  ),
+                                                                  onPressed: () async {
+                                                                    if (titleController.text.isEmpty) {
+                                                                      ScaffoldMessenger.of(context).showSnackBar(
+                                                                        const SnackBar(
+                                                                          content: Text('Lütfen kategori ismini girin'),
+                                                                        ),
+                                                                      );
+                                                                      return;
+                                                                    }
+
+                                                                    // Show loading dialog
+                                                                    showDialog(
+                                                                      context: context,
+                                                                      barrierDismissible: false,
+                                                                      builder: (context) => Center(
+                                                                        child: LoadingAnimationWidget.flickr(
+                                                                          leftDotColor: const Color(0xFFFF8A00),
+                                                                          rightDotColor: const Color(0xFF00B761),
+                                                                          size: 45,
+                                                                        ),
+                                                                      ),
+                                                                    );
+
+                                                                    final updatedCategory = Category(
+                                                                      id: category.id,
+                                                                      title: titleController.text,
+                                                                    );
+
+                                                                    await menuNotifier.updateCategory(
+                                                                      updatedCategory,
+                                                                      category.title ?? '',
+                                                                      context,
+                                                                    );
+
+                                                                    // Close loading dialog and edit dialog
+                                                                    if (context.mounted) {
+                                                                      Navigator.pop(context); // Close loading dialog
+                                                                      Navigator.pop(context); // Close edit dialog
+                                                                    }
+                                                                  },
+                                                                  child: Text(
+                                                                    'Kaydet',
+                                                                    style: GoogleFonts.poppins(
+                                                                      fontSize: 14,
+                                                                      color: Colors.white,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            );
+                                          },
+                                          splashRadius: 20,
+                                          padding: const EdgeInsets.all(8),
+                                        ),
+                                      ],
                                     ),
                                   );
                                 },
@@ -411,6 +670,7 @@ class _MenuViewState extends ConsumerState<MenuView> {
     TextEditingController titleController = TextEditingController();
     TextEditingController priceController = TextEditingController();
     TextEditingController categoryController = TextEditingController();
+    String? selectedOrderType;
 
     return showDialog(
       context: context,
@@ -600,6 +860,59 @@ class _MenuViewState extends ConsumerState<MenuView> {
                         },
                       ),
                     ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Sipariş Tipi',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[50],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Colors.grey[200]!,
+                        ),
+                      ),
+                      child: DropdownButtonFormField<String>(
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                        ),
+                        icon: Icon(Icons.arrow_drop_down, color: Colors.grey[600], size: 20),
+                        isExpanded: true,
+                        dropdownColor: Colors.white,
+                        menuMaxHeight: 200,
+                        hint: Text(
+                          'Sipariş tipi seçin',
+                          style: GoogleFonts.poppins(
+                            color: Colors.grey[400],
+                            fontSize: 14,
+                          ),
+                        ),
+                        items: ['Mutfak', 'Bar'].map((type) {
+                          return DropdownMenuItem<String>(
+                            value: type,
+                            child: Text(
+                              type,
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            selectedOrderType = value;
+                          });
+                        },
+                      ),
+                    ),
                     const SizedBox(height: 24),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -645,6 +958,7 @@ class _MenuViewState extends ConsumerState<MenuView> {
                                     price: double.tryParse(priceController.text),
                                     image: ref.watch(menuProvider).photoURL,
                                     category: categoryController.text,
+                                    orderType: selectedOrderType,
                                   );
 
                                   await menuNotifier.addProduct(newProduct);
@@ -742,6 +1056,7 @@ class MenuItem extends ConsumerWidget {
                                 final priceController = TextEditingController(text: item.price?.toString());
                                 final categoryController = TextEditingController(text: item.category);
                                 final stockController = TextEditingController(text: item.stock?.toString() ?? '0');
+                                String? selectedOrderType = item.orderType;
 
                                 return Dialog(
                                   shape: RoundedRectangleBorder(
@@ -846,6 +1161,64 @@ class MenuItem extends ConsumerWidget {
                                           ),
                                         ),
                                         const SizedBox(height: 16),
+                                        Text(
+                                          'Sipariş Tipi',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.grey[700],
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey[50],
+                                            borderRadius: BorderRadius.circular(12),
+                                            border: Border.all(
+                                              color: Colors.grey[200]!,
+                                            ),
+                                          ),
+                                          child: StatefulBuilder(
+                                            builder: (context, setState) {
+                                              return DropdownButtonFormField<String>(
+                                                value: selectedOrderType,
+                                                decoration: const InputDecoration(
+                                                  border: InputBorder.none,
+                                                ),
+                                                icon: Icon(Icons.arrow_drop_down, color: Colors.grey[600], size: 20),
+                                                isExpanded: true,
+                                                dropdownColor: Colors.white,
+                                                menuMaxHeight: 200,
+                                                hint: Text(
+                                                  'Sipariş tipi seçin',
+                                                  style: GoogleFonts.poppins(
+                                                    color: Colors.grey[400],
+                                                    fontSize: 14,
+                                                  ),
+                                                ),
+                                                items: ['Mutfak', 'Bar'].map((type) {
+                                                  return DropdownMenuItem<String>(
+                                                    value: type,
+                                                    child: Text(
+                                                      type,
+                                                      style: GoogleFonts.poppins(
+                                                        fontSize: 14,
+                                                        color: Colors.black87,
+                                                      ),
+                                                    ),
+                                                  );
+                                                }).toList(),
+                                                onChanged: (value) {
+                                                  setState(() {
+                                                    selectedOrderType = value;
+                                                  });
+                                                },
+                                              );
+                                            }
+                                          ),
+                                        ),
+                                        const SizedBox(height: 16),
                                         _buildTextField(
                                           controller: stockController,
                                           label: 'Stok',
@@ -942,6 +1315,7 @@ class MenuItem extends ConsumerWidget {
                                                     stock: int.tryParse(stockController.text),
                                                     image: item.image,
                                                     status: item.status,
+                                                    orderType: selectedOrderType,
                                                   );
 
                                                   await ref.read(menuProvider.notifier).updateProduct(updatedProduct, context);

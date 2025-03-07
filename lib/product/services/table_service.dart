@@ -1,10 +1,23 @@
 import 'dart:convert';
-
 import 'package:foomoons/product/init/config/app_environment.dart';
+import 'package:foomoons/product/model/area.dart';
 import 'package:foomoons/product/model/menu.dart';
 import 'package:foomoons/product/model/table.dart';
 import 'package:foomoons/product/services/auth_service.dart';
 import 'package:http/http.dart' as http;
+import 'package:uuid/uuid.dart';
+
+class UpdateAreaResult {
+  final bool success;
+  final Area? data;
+  final List<CoffeTable>? updatedTables;
+
+  UpdateAreaResult({
+    required this.success,
+    this.data,
+    this.updatedTables,
+  });
+}
 
 class TableService {
   final String baseUrl = AppEnvironmentItems.baseUrl.value;
@@ -42,13 +55,16 @@ class TableService {
   Future<CoffeTable> addTable(CoffeTable table) async {
     try {
       final businessId = await _authService.getValidatedBusinessId();
+      
+      // 1. Önce masayı boş QR URL ile ekle
       final url = Uri.parse('$baseUrl/tables/add');
       final body = jsonEncode({
         'area': table.area,
-        'qrUrl': table.qrUrl,
+        'qrUrl': '', // Boş QR URL ile başla
         'tableTitle': table.tableTitle,
         'businessId': businessId,
       });
+      
       final response = await http.post(
         url,
         headers: {
@@ -56,12 +72,59 @@ class TableService {
         },
         body: body,
       );
+      
       final responseData = jsonDecode(response.body);
       final addedTable = CoffeTable.fromJson(responseData['data']);
-      print(addedTable.qrUrl);
-      return addedTable;
+      
+      // 2. Eklenen masanın ID'si ile QR URL oluştur
+      final qrUrl = await generateQRUrl(addedTable.id.toString());
+      
+      // 3. Masayı QR URL ile güncelle
+      final updateUrl = Uri.parse('$baseUrl/tables/update');
+      final updateBody = jsonEncode({
+        'id': addedTable.id,
+        'area': addedTable.area,
+        'qrUrl': qrUrl,
+        'tableTitle': addedTable.tableTitle,
+        'businessId': businessId,
+      });
+      
+      final updateResponse = await http.post(
+        updateUrl,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: updateBody,
+      );
+      
+      final updatedData = jsonDecode(updateResponse.body);
+      final updatedTable = CoffeTable.fromJson(updatedData['data']);
+      
+      print('✅ Masa başarıyla eklendi: ${updatedTable.tableTitle}');
+      return updatedTable;
     } catch (e) {
       throw Exception('Masa eklerken hata oluştu: $e');
+    }
+  }
+
+  // QR URL oluşturmak için yardımcı metod
+  Future<String> generateQRUrl(String tableId) async {
+    try {
+      final businessId = await _authService.getBusinessId();
+      // businessId ve tableId'yi şifreliyoruz
+      final String token = base64Encode(utf8.encode('businessId:$businessId,tableId:$tableId'));
+
+      final Uri menuUrl = Uri(
+        scheme: 'http',
+        host: 'foomoons.com',
+        path: '/menu/',
+      );
+      final String finalUrl = '$menuUrl#/?token=$token';
+      print('✅ QR URL oluşturuldu: $finalUrl');
+      return finalUrl;
+    } catch (e) {
+      print('❌ QR URL oluşturma hatası: $e');
+      rethrow;
     }
   }
 
@@ -464,6 +527,90 @@ class TableService {
       print('❌ HATA: Masalar birleştirilirken bir sorun oluştu:');
       print('❌ $e');
       return false;
+    }
+  }
+
+  Future<UpdateAreaResult> updateArea({required Area area, required String newAreaName, required Function(String) generateQRCode}) async {
+    try {
+      final businessId = await _authService.getValidatedBusinessId();
+      print('🔄 Alan adı güncelleniyor: ${area.title} -> $newAreaName');
+      
+      // 1. Önce mevcut masaları getir
+      final tables = await fetchTables();
+      final tablesToUpdate = tables.where((table) => table.area == area.title).toList();
+      print('📋 Güncellenecek masa sayısı: ${tablesToUpdate.length}');
+      
+      final updatedTables = <CoffeTable>[];
+      
+      // 2. Her bir masayı güncelle
+      for (final table in tablesToUpdate) {
+        print('🔄 Masa güncelleniyor: ${table.tableTitle}');
+        
+        // Yeni masa başlığını oluştur
+        final tableNumber = table.tableTitle?.split(' ').last; // "Salon 1"den "1"i al
+        final newTableTitle = '$newAreaName $tableNumber';
+        
+        // Table ID'yi kullanarak QR code oluştur
+        final newQrUrl = await generateQRCode(table.id.toString());
+        
+        final response = await http.post(
+          Uri.parse('$baseUrl/Tables/update'),
+          headers: {
+            'Content-Type': 'application/json',
+            'accept': '*/*',
+          },
+          body: json.encode({
+            'id': table.id,
+            'area': newAreaName,
+            'tableTitle': newTableTitle,
+            'businessId': businessId,
+            'qrUrl': newQrUrl
+          }),
+        );
+
+        if (response.statusCode != 200) {
+          print('❌ Masa güncellenemedi: ${table.tableTitle}');
+          throw Exception('Masa güncellenirken hata oluştu: ${response.statusCode}');
+        }
+        
+        final responseData = json.decode(response.body);
+        final updatedTable = CoffeTable.fromJson(responseData['data']);
+        updatedTables.add(updatedTable);
+        print('✅ Masa güncellendi: $newTableTitle');
+      }
+
+      // 3. Alanı güncelle
+      print('🔄 Alan güncelleniyor... (ID: ${area.id})');
+      final response = await http.post(
+        Uri.parse('$baseUrl/Areas/update'),
+        headers: {
+          'Content-Type': 'application/json',
+          'accept': '*/*',
+        },
+        body: json.encode({
+          'id': area.id,
+          'title': newAreaName,
+          'businessId': businessId
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        print('✅ Alan başarıyla güncellendi');
+        final responseData = json.decode(response.body);
+        final updatedArea = Area.fromJson(responseData['data']);
+        
+        return UpdateAreaResult(
+          success: true,
+          data: updatedArea,
+          updatedTables: updatedTables,
+        );
+      } else {
+        throw Exception('Alan adı güncellenirken hata oluştu: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ HATA: Alan adı güncellenirken bir sorun oluştu:');
+      print('❌ $e');
+      return UpdateAreaResult(success: false);
     }
   }
 }
