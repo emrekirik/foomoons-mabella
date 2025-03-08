@@ -184,7 +184,7 @@ class TableService {
         "piece": item.piece ?? 1,
         "preparationTime": DateTime.now().toIso8601String(),
         "price": item.price,
-        "status": item.status,
+        "status": 'hazırlanıyor',
         "title": item.title,
         "billId": billId,
       };
