@@ -36,6 +36,12 @@ class FirebaseMessagingService {
     final businessId = await authService.getValidatedBusinessId();
     print('businessId: $businessId');
     try {
+      // Skip for Windows platform
+      if (Platform.isWindows) {
+        debugPrint('${Platform.operatingSystem}: Firebase Messaging bu platformda desteklenmiyor');
+        return;
+      }
+
       // Bildirim izinlerini platform bağımsız olarak ayarla
       await _messaging.setForegroundNotificationPresentationOptions(
         alert: true,
