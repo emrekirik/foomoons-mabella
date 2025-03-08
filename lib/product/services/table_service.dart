@@ -613,4 +613,25 @@ class TableService {
       return UpdateAreaResult(success: false);
     }
   }
+
+  Future<CoffeTable?> getTableById(int id) async {
+    try {
+      print('🔍 Masa detayları getiriliyor (ID: $id)...');
+      final response = await http.get(
+        Uri.parse('$baseUrl/Tables/getbyid?id=$id'),
+        headers: {'accept': '*/*'},
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return CoffeTable.fromJson(data['data']);
+        }
+      }
+      return null;
+    } catch (e) {
+      print('❌ Masa detayları getirilirken hata oluştu: $e');
+      return null;
+    }
+  }
 }

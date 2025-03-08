@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:foomoons/product/services/bar_printer_service.dart';
 import 'package:foomoons/product/services/kitchen_printer_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:foomoons/product/model/table.dart';
 
 class AdminView extends ConsumerStatefulWidget {
   const AdminView({super.key});
@@ -599,6 +600,45 @@ class _AdminViewState extends ConsumerState<AdminView> {
   }
 
   Widget _buildOrderDetailTile(String label, String value, IconData icon) {
+    if (icon == Icons.table_restaurant && value.isNotEmpty) {
+      // If this is a table display and we have a value (table ID)
+      return FutureBuilder<CoffeTable?>(
+        future: ref.read(tableServiceProvider).getTableById(int.tryParse(value) ?? 0),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+              ),
+            );
+          }
+          
+          final tableName = snapshot.data?.tableTitle ?? 'Bilinmiyor';
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 16, color: Colors.grey[700]),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  tableName,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  overflow: tableName.contains('.')
+                      ? TextOverflow.visible
+                      : TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          );
+        },
+      );
+    }
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [

@@ -84,6 +84,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^4.0.0
+  msix: ^3.16.7
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -129,6 +130,17 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+
+msix_config:
+  display_name: Foomoons
+  publisher_display_name: Foomoons
+  identity_name: Foomoons.Foomoons
+  publisher: CN=3C610132-8838-4D68-93EB-B2F473705408
+  msix_version: 1.0.4.0
+  logo_path: assets/images/logo.png
+  capabilities: internetClient
+  store: true
+  package_family_name: Foomoons.Foomoons_496a2ee7ys3em
 
 # flutter_native_splash:
 #   background_image: assets/images/splash.png
