@@ -23,6 +23,7 @@ class _ProfileMobileViewState extends ConsumerState<ProfileMobileView> {
 
   final TextEditingController titleController = TextEditingController();
   Map<String, dynamic>? userDetails;
+
   @override
   void initState() {
     super.initState();
@@ -320,6 +321,65 @@ class _BusinessDataSection extends StatelessWidget {
   final ProfileState profileState;
   final ProfileNotifier profileNotifier;
 
+  void _showPrinterIpDialog(
+    BuildContext context,
+    String title,
+    String currentValue,
+    Function(String) onSave,
+  ) {
+    final TextEditingController controller = TextEditingController(text: currentValue);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            hintText: 'IP adresini girin (örn: 192.168.1.100)',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          keyboardType: TextInputType.visiblePassword,
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'İptal',
+              style: GoogleFonts.poppins(
+                color: Colors.grey[600],
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              onSave(controller.text);
+              Navigator.pop(context);
+            },
+            child: Text(
+              'Kaydet',
+              style: GoogleFonts.poppins(
+                color: Colors.orange[400],
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -373,6 +433,64 @@ class _BusinessDataSection extends StatelessWidget {
           _CustomTextVertical(
             title: 'İşletme Hakkında: ',
             desc: profileState.businessInfo ?? '',
+          ),
+          SizedBox(height: deviceHeight * 0.02),
+          // Bar Yazıcı IP Adresi
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: _CustomText(
+                  title: 'Bar Yazıcı IP: ',
+                  desc: profileState.printerIpAddress ?? 'Ayarlanmamış',
+                ),
+              ),
+              IconButton(
+                onPressed: () => _showPrinterIpDialog(
+                  context,
+                  'Bar Yazıcı IP',
+                  profileState.printerIpAddress ?? '',
+                  (value) async {
+                    profileNotifier.updatePrinterIpAddress(value);
+                    await profileNotifier.savePrinterIpAddress();
+                  },
+                ),
+                icon: Icon(
+                  Icons.edit,
+                  size: 20,
+                  color: Colors.orange[400],
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: deviceHeight * 0.02),
+          // Mutfak Yazıcı IP Adresi
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: _CustomText(
+                  title: 'Mutfak Yazıcı IP: ',
+                  desc: profileState.printer2IpAddress ?? 'Ayarlanmamış',
+                ),
+              ),
+              IconButton(
+                onPressed: () => _showPrinterIpDialog(
+                  context,
+                  'Mutfak Yazıcı IP',
+                  profileState.printer2IpAddress ?? '',
+                  (value) async {
+                    profileNotifier.updatePrinter2IpAddress(value);
+                    await profileNotifier.savePrinter2IpAddress();
+                  },
+                ),
+                icon: Icon(
+                  Icons.edit,
+                  size: 20,
+                  color: Colors.orange[400],
+                ),
+              ),
+            ],
           ),
           SizedBox(height: deviceHeight * 0.02),
           InkWell(

@@ -8,6 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:foomoons/product/providers/app_providers.dart';
 import 'package:flutter/rendering.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:foomoons/product/services/bar_printer_service.dart';
+import 'package:foomoons/product/services/kitchen_printer_service.dart';
 
 class BillMobileView extends ConsumerStatefulWidget {
   final int tableId;
@@ -920,9 +922,45 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                       
                       for (var item in newOrders) {
                         try {
+                          // Önce siparişi API'ye gönder
                           final success = await orderService.addOrder(item, widget.tableTitle);
+                          
                           if (success) {
-                            successCount++;
+                            // API'ye gönderim başarılı olduysa, yazıcıya gönder
+                            try {
+                              print('�� Yazıcıya gönderiliyor...');
+                              print('🖨️ Sipariş Tipi: ${item.orderType}');
+                              
+                              final orderData = {
+                                'title': item.title,
+                                'piece': item.piece,
+                                'tableTitle': widget.tableTitle,
+                              };
+
+                              if (item.orderType?.toLowerCase() == 'bar' || item.orderType == null) {
+                                print('�� Bar siparişi yazıcıya gönderiliyor...');
+                                await BarPrinterService.printBarOrder(
+                                  orderData,
+                                  useWifi: true,
+                                );
+                                print('✅ Bar siparişi yazıcıya gönderildi');
+                              } else if (item.orderType?.toLowerCase() == 'mutfak') {
+                                print('🍳 Mutfak siparişi yazıcıya gönderiliyor...');
+                                await KitchenPrinterService.printKitchenOrder(
+                                  orderData,
+                                  useWifi: true,
+                                );
+                                print('✅ Mutfak siparişi yazıcıya gönderildi');
+                              } else {
+                                print('⚠️ Bilinmeyen sipariş tipi: ${item.orderType}');
+                              }
+                              successCount++;
+                            } catch (printerError) {
+                              print('❌ Yazıcı hatası detayı: $printerError');
+                              print('📍 Hata konumu: ${StackTrace.current}');
+                              // Yazıcı hatası olsa bile API'ye gönderildiği için başarılı sayıyoruz
+                              successCount++;
+                            }
                           } else {
                             hasError = true;
                             break;

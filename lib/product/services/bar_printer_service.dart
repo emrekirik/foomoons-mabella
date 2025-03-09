@@ -2,6 +2,8 @@ import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 import 'package:win32/win32.dart';
 import 'package:foomoons/product/services/settings_service.dart';
+import 'dart:io';
+import 'dart:convert';
 
 typedef LogCallback = void Function(String message, {bool isError});
 
@@ -12,12 +14,23 @@ class BarPrinterService {
   static Future<void> printBarOrder(
     Map<String, dynamic> order, {
     LogCallback? onLog,
+    bool useWifi = false,
   }) async {
     print('\n🖨️ Bar Siparişi Yazdırma başlatılıyor...');
     
     final settingsService = SettingsService();
-    final printerName = await settingsService.getPrinterName(); // Bar yazıcısı için birinci yazıcıyı kullan
     
+    if (useWifi) {
+      final printerIp = await settingsService.getPrinterIpAddress();
+      if (printerIp == null || printerIp.isEmpty) {
+        print('❌ Bar yazıcısı IP adresi bulunamadı. Lütfen önce IP adresini ayarlayın.');
+        return;
+      }
+      await printBarOrderWifi(order, printerIp);
+      return;
+    }
+    
+    final printerName = await settingsService.getPrinterName();
     if (printerName.isEmpty) {
       print('❌ Bar yazıcısı ismi bulunamadı. Lütfen önce yazıcı ismini ayarlayın.');
       return;
@@ -38,6 +51,40 @@ class BarPrinterService {
 
     if (!success) {
       print('❌ Maksimum deneme sayısına ulaşıldı. Bar siparişi yazdırma başarısız.');
+    }
+  }
+
+  static Future<void> printBarOrderWifi(Map<String, dynamic> order, String printerIp) async {
+    print('📡 WiFi üzerinden bar siparişi yazdırılıyor...');
+    print('🖨️ Yazıcı IP: $printerIp');
+
+    try {
+      final socket = await Socket.connect(printerIp, 9100, timeout: Duration(seconds: 5));
+      print('✅ Yazıcı bağlantısı başarılı');
+
+      final orderData = _generateBarOrderData(order);
+      List<int> bytes = [];
+      
+      // ESC/POS komutları
+      bytes.addAll([0x1B, 0x40]); // Initialize printer
+      bytes.addAll([0x1B, 0x74, 0x12]); // Select character code table
+      
+      // Veriyi byte'lara dönüştür
+      bytes.addAll(utf8.encode(orderData));
+      
+      // Kağıt kesme komutu
+      bytes.addAll([0x1D, 0x56, 0x41, 0x00]);
+      
+      // Veriyi gönder
+      socket.add(bytes);
+      await socket.flush();
+      
+      // Bağlantıyı kapat
+      await socket.close();
+      print('✅ Bar siparişi başarıyla yazdırıldı');
+    } catch (e) {
+      print('❌ WiFi yazdırma hatası: $e');
+      rethrow;
     }
   }
 

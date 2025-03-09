@@ -2,6 +2,8 @@ import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 import 'package:win32/win32.dart';
 import 'package:foomoons/product/services/settings_service.dart';
+import 'dart:io';
+import 'dart:convert';
 
 typedef LogCallback = void Function(String message, {bool isError});
 
@@ -12,12 +14,23 @@ class KitchenPrinterService {
   static Future<void> printKitchenOrder(
     Map<String, dynamic> order, {
     LogCallback? onLog,
+    bool useWifi = false,
   }) async {
     print('\n🖨️ Mutfak Siparişi Yazdırma başlatılıyor...');
     
     final settingsService = SettingsService();
-    final printerName = await settingsService.getPrinter2Name(); // Mutfak yazıcısı için ikinci yazıcıyı kullan
     
+    if (useWifi) {
+      final printerIp = await settingsService.getPrinter2IpAddress();
+      if (printerIp == null || printerIp.isEmpty) {
+        print('❌ Mutfak yazıcısı IP adresi bulunamadı. Lütfen önce IP adresini ayarlayın.');
+        return;
+      }
+      await printKitchenOrderWifi(order, printerIp);
+      return;
+    }
+    
+    final printerName = await settingsService.getPrinter2Name();
     if (printerName.isEmpty) {
       print('❌ Mutfak yazıcısı ismi bulunamadı. Lütfen önce yazıcı ismini ayarlayın.');
       return;
@@ -38,6 +51,40 @@ class KitchenPrinterService {
 
     if (!success) {
       print('❌ Maksimum deneme sayısına ulaşıldı. Mutfak siparişi yazdırma başarısız.');
+    }
+  }
+
+  static Future<void> printKitchenOrderWifi(Map<String, dynamic> order, String printerIp) async {
+    print('📡 WiFi üzerinden mutfak siparişi yazdırılıyor...');
+    print('🖨️ Yazıcı IP: $printerIp');
+
+    try {
+      final socket = await Socket.connect(printerIp, 9100, timeout: Duration(seconds: 5));
+      print('✅ Yazıcı bağlantısı başarılı');
+
+      final orderData = _generateKitchenOrderData(order);
+      List<int> bytes = [];
+      
+      // ESC/POS komutları
+      bytes.addAll([0x1B, 0x40]); // Initialize printer
+      bytes.addAll([0x1B, 0x74, 0x12]); // Select character code table
+      
+      // Veriyi byte'lara dönüştür
+      bytes.addAll(utf8.encode(orderData));
+      
+      // Kağıt kesme komutu
+      bytes.addAll([0x1D, 0x56, 0x41, 0x00]);
+      
+      // Veriyi gönder
+      socket.add(bytes);
+      await socket.flush();
+      
+      // Bağlantıyı kapat
+      await socket.close();
+      print('✅ Mutfak siparişi başarıyla yazdırıldı');
+    } catch (e) {
+      print('❌ WiFi yazdırma hatası: $e');
+      rethrow;
     }
   }
 

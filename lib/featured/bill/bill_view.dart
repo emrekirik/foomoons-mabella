@@ -1324,8 +1324,9 @@ class _BillViewState extends ConsumerState<BillView>
                             'status': 'ödendi'
                           })
                       .toList();
-
-                  await _handlePrinting(billItemsForPrinter);
+                  if (widget.isSelfService) {
+                    await _handlePrinting(billItemsForPrinter);
+                  }
 
                   if (context.mounted) {
                     final tablesNotifier = ref.read(tablesProvider.notifier);

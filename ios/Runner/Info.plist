@@ -73,9 +73,18 @@
 		</array>
 		<key>NSLocalNetworkUsageDescription</key>
 		<string>Uygulama, debug modunda çalışırken yerel ağa erişim gerektirir</string>
+		<key>NSLocalNetworkUsageDescription</key>
+		<string>Yazıcılarla iletişim kurabilmek için yerel ağ erişimi gerekiyor</string>
 		<key>UIViewControllerBasedStatusBarAppearance</key>
 		<false/>
 		<key>PHPhotoLibraryPreventAutomaticLimitedAccessAlert</key>
 		<true/>
+		<key>NSAppTransportSecurity</key>
+		<dict>
+			<key>NSAllowsArbitraryLoads</key>
+			<true/>
+			<key>NSAllowsLocalNetworking</key>
+			<true/>
+		</dict>
 	</dict>
 </plist>

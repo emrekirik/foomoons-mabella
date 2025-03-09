@@ -107,7 +107,7 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
       final ipAddress = await settingsService.getPrinterIpAddress();
       state = state.copyWith(printerIpAddress: ipAddress);
     } catch (e) {
-      _handleError(e, 'Yazıcı IP adresi yükleme hatası');
+      print('❌ Bar yazıcı IP adresi yüklenirken hata: $e');
     }
   }
 
@@ -117,7 +117,7 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
       final printerName = await settingsService.getPrinterName();
       state = state.copyWith(printerName: printerName);
     } catch (e) {
-      _handleError(e, 'Yazıcı ismi yükleme hatası');
+      print('❌ Bar yazıcı adı yüklenirken hata: $e');
     }
   }
 
@@ -127,7 +127,7 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
       final ipAddress = await settingsService.getPrinter2IpAddress();
       state = state.copyWith(printer2IpAddress: ipAddress);
     } catch (e) {
-      _handleError(e, 'Yazıcı 2 IP adresi yükleme hatası');
+      print('❌ Mutfak yazıcı IP adresi yüklenirken hata: $e');
     }
   }
 
@@ -137,7 +137,7 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
       final printerName = await settingsService.getPrinter2Name();
       state = state.copyWith(printer2Name: printerName);
     } catch (e) {
-      _handleError(e, 'Yazıcı 2 ismi yükleme hatası');
+      print('❌ Mutfak yazıcı adı yüklenirken hata: $e');
     }
   }
 
@@ -162,9 +162,10 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
       if (state.printerIpAddress != null) {
         final settingsService = ref.read(settingsServiceProvider);
         await settingsService.setPrinterIpAddress(state.printerIpAddress!);
+        print('✅ Bar yazıcı IP adresi kaydedildi: ${state.printerIpAddress}');
       }
     } catch (e) {
-      _handleError(e, 'Yazıcı IP adresi kaydetme hatası');
+      print('❌ Bar yazıcı IP adresi kaydedilirken hata: $e');
     }
   }
 
@@ -173,9 +174,10 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
       if (state.printerName != null) {
         final settingsService = ref.read(settingsServiceProvider);
         await settingsService.setPrinterName(state.printerName!);
+        print('✅ Bar yazıcı adı kaydedildi: ${state.printerName}');
       }
     } catch (e) {
-      _handleError(e, 'Yazıcı ismi kaydetme hatası');
+      print('❌ Bar yazıcı adı kaydedilirken hata: $e');
     }
   }
 
@@ -184,9 +186,10 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
       if (state.printer2IpAddress != null) {
         final settingsService = ref.read(settingsServiceProvider);
         await settingsService.setPrinter2IpAddress(state.printer2IpAddress!);
+        print('✅ Mutfak yazıcı IP adresi kaydedildi: ${state.printer2IpAddress}');
       }
     } catch (e) {
-      _handleError(e, 'Yazıcı 2 IP adresi kaydetme hatası');
+      print('❌ Mutfak yazıcı IP adresi kaydedilirken hata: $e');
     }
   }
 
@@ -195,9 +198,10 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
       if (state.printer2Name != null) {
         final settingsService = ref.read(settingsServiceProvider);
         await settingsService.setPrinter2Name(state.printer2Name!);
+        print('✅ Mutfak yazıcı adı kaydedildi: ${state.printer2Name}');
       }
     } catch (e) {
-      _handleError(e, 'Yazıcı 2 ismi kaydetme hatası');
+      print('❌ Mutfak yazıcı adı kaydedilirken hata: $e');
     }
   }
 
