@@ -200,15 +200,117 @@ class _AdminViewState extends ConsumerState<AdminView> {
                                                         ),
                                                       ),
                                                       Container(
-                                                        width: 80,
-                                                        alignment:
-                                                            Alignment.center,
-                                                        child:
+                                                        width: 120,
+                                                        alignment: Alignment.centerRight,
+                                                        child: Row(
+                                                          mainAxisSize: MainAxisSize.min,
+                                                          mainAxisAlignment: MainAxisAlignment.end,
+                                                          children: [
                                                             _buildOrderDetailTile(
                                                           '',
                                                           '${item.piece} adet',
-                                                          Icons
-                                                              .format_list_numbered,
+                                                              Icons.format_list_numbered,
+                                                            ),
+                                                            if (item.customerMessage != null && item.customerMessage!.trim().isNotEmpty) ...[
+                                                              const SizedBox(width: 8),
+                                                              GestureDetector(
+                                                                onTap: () {
+                                                                  showDialog(
+                                                                    context: context,
+                                                                    builder: (BuildContext context) {
+                                                                      return Dialog(
+                                                                        shape: RoundedRectangleBorder(
+                                                                          borderRadius: BorderRadius.circular(20),
+                                                                        ),
+                                                                        child: Container(
+                                                                          width: 400,
+                                                                          padding: const EdgeInsets.all(32),
+                                                                          decoration: BoxDecoration(
+                                                                            color: Colors.white,
+                                                                            borderRadius: BorderRadius.circular(20),
+                                                                          ),
+                                                                          child: Column(
+                                                                            mainAxisSize: MainAxisSize.min,
+                                                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                                                            children: [
+                                                                              Row(
+                                                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                children: [
+                                                                                  Text(
+                                                                                    'Sipariş Açıklaması',
+                                                                                    style: GoogleFonts.poppins(
+                                                                                      fontSize: 24,
+                                                                                      fontWeight: FontWeight.w600,
+                                                                                      color: Colors.black,
+                                                                                      letterSpacing: -0.5,
+                                                                                    ),
+                                                                                  ),
+                                                                                  IconButton(
+                                                                                    onPressed: () => Navigator.pop(context),
+                                                                                    icon: Icon(
+                                                                                      Icons.close,
+                                                                                      color: Colors.grey[400],
+                                                                                      size: 24,
+                                                                                    ),
+                                                                                  ),
+                                                                                ],
+                                                                              ),
+                                                                              const SizedBox(height: 24),
+                                                                              Text(
+                                                                                item.customerMessage ?? '',
+                                                                                style: GoogleFonts.poppins(
+                                                                                  fontSize: 16,
+                                                                                  color: Colors.grey[700],
+                                                                                ),
+                                                                              ),
+                                                                              const SizedBox(height: 32),
+                                                                              Row(
+                                                                                mainAxisAlignment: MainAxisAlignment.end,
+                                                                                children: [
+                                                                                  ElevatedButton(
+                                                                                    style: ElevatedButton.styleFrom(
+                                                                                      backgroundColor: Colors.orange,
+                                                                                      padding: const EdgeInsets.symmetric(
+                                                                                        horizontal: 24,
+                                                                                        vertical: 12,
+                                                                                      ),
+                                                                                      shape: RoundedRectangleBorder(
+                                                                                        borderRadius: BorderRadius.circular(12),
+                                                                                      ),
+                                                                                    ),
+                                                                                    onPressed: () => Navigator.pop(context),
+                                                                                    child: Text(
+                                                                                      'Tamam',
+                                                                                      style: GoogleFonts.poppins(
+                                                                                        fontSize: 16,
+                                                                                        color: Colors.white,
+                                                                                      ),
+                                                                                    ),
+                                                                                  ),
+                                                                                ],
+                                                                              ),
+                                                                            ],
+                                                                          ),
+                                                                        ),
+                                                                      );
+                                                                    },
+                                                                  );
+                                                                },
+                                                                child: Container(
+                                                                  padding: const EdgeInsets.all(4),
+                                                                  decoration: BoxDecoration(
+                                                                    color: Colors.orange[50],
+                                                                    borderRadius: BorderRadius.circular(6),
+                                                                  ),
+                                                                  child: Icon(
+                                                                    Icons.comment,
+                                                                    size: 16,
+                                                                    color: Colors.orange[700],
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ],
                                                         ),
                                                       ),
                                                     ],
@@ -339,15 +441,117 @@ class _AdminViewState extends ConsumerState<AdminView> {
                                                         ),
                                                       ),
                                                       Container(
-                                                        width: 80,
-                                                        alignment:
-                                                            Alignment.center,
-                                                        child:
+                                                        width: 120,
+                                                        alignment: Alignment.centerRight,
+                                                        child: Row(
+                                                          mainAxisSize: MainAxisSize.min,
+                                                          mainAxisAlignment: MainAxisAlignment.end,
+                                                          children: [
                                                             _buildOrderDetailTile(
                                                           '',
                                                           '${item.piece} adet',
-                                                          Icons
-                                                              .format_list_numbered,
+                                                              Icons.format_list_numbered,
+                                                            ),
+                                                            if (item.customerMessage != null && item.customerMessage!.trim().isNotEmpty) ...[
+                                                              const SizedBox(width: 8),
+                                                              GestureDetector(
+                                                                onTap: () {
+                                                                  showDialog(
+                                                                    context: context,
+                                                                    builder: (BuildContext context) {
+                                                                      return Dialog(
+                                                                        shape: RoundedRectangleBorder(
+                                                                          borderRadius: BorderRadius.circular(20),
+                                                                        ),
+                                                                        child: Container(
+                                                                          width: 400,
+                                                                          padding: const EdgeInsets.all(32),
+                                                                          decoration: BoxDecoration(
+                                                                            color: Colors.white,
+                                                                            borderRadius: BorderRadius.circular(20),
+                                                                          ),
+                                                                          child: Column(
+                                                                            mainAxisSize: MainAxisSize.min,
+                                                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                                                            children: [
+                                                                              Row(
+                                                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                children: [
+                                                                                  Text(
+                                                                                    'Sipariş Açıklaması',
+                                                                                    style: GoogleFonts.poppins(
+                                                                                      fontSize: 24,
+                                                                                      fontWeight: FontWeight.w600,
+                                                                                      color: Colors.black,
+                                                                                      letterSpacing: -0.5,
+                                                                                    ),
+                                                                                  ),
+                                                                                  IconButton(
+                                                                                    onPressed: () => Navigator.pop(context),
+                                                                                    icon: Icon(
+                                                                                      Icons.close,
+                                                                                      color: Colors.grey[400],
+                                                                                      size: 24,
+                                                                                    ),
+                                                                                  ),
+                                                                                ],
+                                                                              ),
+                                                                              const SizedBox(height: 24),
+                                                                              Text(
+                                                                                item.customerMessage ?? '',
+                                                                                style: GoogleFonts.poppins(
+                                                                                  fontSize: 16,
+                                                                                  color: Colors.grey[700],
+                                                                                ),
+                                                                              ),
+                                                                              const SizedBox(height: 32),
+                                                                              Row(
+                                                                                mainAxisAlignment: MainAxisAlignment.end,
+                                                                                children: [
+                                                                                  ElevatedButton(
+                                                                                    style: ElevatedButton.styleFrom(
+                                                                                      backgroundColor: Colors.orange,
+                                                                                      padding: const EdgeInsets.symmetric(
+                                                                                        horizontal: 24,
+                                                                                        vertical: 12,
+                                                                                      ),
+                                                                                      shape: RoundedRectangleBorder(
+                                                                                        borderRadius: BorderRadius.circular(12),
+                                                                                      ),
+                                                                                    ),
+                                                                                    onPressed: () => Navigator.pop(context),
+                                                                                    child: Text(
+                                                                                      'Tamam',
+                                                                                      style: GoogleFonts.poppins(
+                                                                                        fontSize: 16,
+                                                                                        color: Colors.white,
+                                                                                      ),
+                                                                                    ),
+                                                                                  ),
+                                                                                ],
+                                                                              ),
+                                                                            ],
+                                                                          ),
+                                                                        ),
+                                                                      );
+                                                                    },
+                                                                  );
+                                                                },
+                                                                child: Container(
+                                                                  padding: const EdgeInsets.all(4),
+                                                                  decoration: BoxDecoration(
+                                                                    color: Colors.orange[50],
+                                                                    borderRadius: BorderRadius.circular(6),
+                                                                  ),
+                                                                  child: Icon(
+                                                                    Icons.comment,
+                                                                    size: 16,
+                                                                    color: Colors.orange[700],
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ],
                                                         ),
                                                       ),
                                                     ],
@@ -538,12 +742,117 @@ class _AdminViewState extends ConsumerState<AdminView> {
                                       ),
                                     ),
                                     Container(
-                                      width: 80,
+                                      width: 120,
                                       alignment: Alignment.center,
-                                      child: _buildOrderDetailTile(
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        mainAxisAlignment: MainAxisAlignment.end,
+                                        children: [
+                                          _buildOrderDetailTile(
                                         '',
                                         '${item.piece} adet',
                                         Icons.format_list_numbered,
+                                          ),
+                                          if (item.customerMessage != null && item.customerMessage!.trim().isNotEmpty) ...[
+                                            const SizedBox(width: 8),
+                                            GestureDetector(
+                                              onTap: () {
+                                                showDialog(
+                                                  context: context,
+                                                  builder: (BuildContext context) {
+                                                    return Dialog(
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius: BorderRadius.circular(20),
+                                                      ),
+                                                      child: Container(
+                                                        width: 400,
+                                                        padding: const EdgeInsets.all(32),
+                                                        decoration: BoxDecoration(
+                                                          color: Colors.white,
+                                                          borderRadius: BorderRadius.circular(20),
+                                                        ),
+                                                        child: Column(
+                                                          mainAxisSize: MainAxisSize.min,
+                                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                                          children: [
+                                                            Row(
+                                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                              children: [
+                                                                Text(
+                                                                  'Sipariş Açıklaması',
+                                                                  style: GoogleFonts.poppins(
+                                                                    fontSize: 24,
+                                                                    fontWeight: FontWeight.w600,
+                                                                    color: Colors.black,
+                                                                    letterSpacing: -0.5,
+                                                                  ),
+                                                                ),
+                                                                IconButton(
+                                                                  onPressed: () => Navigator.pop(context),
+                                                                  icon: Icon(
+                                                                    Icons.close,
+                                                                    color: Colors.grey[400],
+                                                                    size: 24,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            const SizedBox(height: 24),
+                                                            Text(
+                                                              item.customerMessage ?? '',
+                                                              style: GoogleFonts.poppins(
+                                                                fontSize: 16,
+                                                                color: Colors.grey[700],
+                                                              ),
+                                                            ),
+                                                            const SizedBox(height: 32),
+                                                            Row(
+                                                              mainAxisAlignment: MainAxisAlignment.end,
+                                                              children: [
+                                                                ElevatedButton(
+                                                                  style: ElevatedButton.styleFrom(
+                                                                    backgroundColor: Colors.orange,
+                                                                    padding: const EdgeInsets.symmetric(
+                                                                      horizontal: 24,
+                                                                      vertical: 12,
+                                                                    ),
+                                                                    shape: RoundedRectangleBorder(
+                                                                      borderRadius: BorderRadius.circular(12),
+                                                                    ),
+                                                                  ),
+                                                                  onPressed: () => Navigator.pop(context),
+                                                                  child: Text(
+                                                                    'Tamam',
+                                                                    style: GoogleFonts.poppins(
+                                                                      fontSize: 16,
+                                                                      color: Colors.white,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    );
+                                                  },
+                                                );
+                                              },
+                                              child: Container(
+                                                padding: const EdgeInsets.all(4),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.orange[50],
+                                                  borderRadius: BorderRadius.circular(6),
+                                                ),
+                                                child: Icon(
+                                                  Icons.comment,
+                                                  size: 16,
+                                                  color: Colors.orange[700],
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ],
                                       ),
                                     ),
                                   ],
