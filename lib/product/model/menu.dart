@@ -19,6 +19,7 @@ class Menu with EquatableMixin, IdModel {
   final int? tableId; // Added tableId field
   final int? billId;  // Added billId field
   final String? orderType; // Added orderType field
+  final String? customerMessage; // Added customerMessage field
 
   const Menu(
       {this.title,
@@ -34,7 +35,8 @@ class Menu with EquatableMixin, IdModel {
       this.isAmount,
       this.tableId,
       this.billId,
-      this.orderType}); // Added orderType to constructor
+      this.orderType,
+      this.customerMessage}); // Added customerMessage to constructor
 
   @override
   List<Object?> get props => [
@@ -51,7 +53,8 @@ class Menu with EquatableMixin, IdModel {
         isAmount,
         tableId,
         billId,
-        orderType
+        orderType,
+        customerMessage
       ];
 
   @override
@@ -71,7 +74,8 @@ class Menu with EquatableMixin, IdModel {
         other.isCredit == isCredit &&
         other.tableId == tableId &&
         other.billId == billId &&
-        other.orderType == orderType;
+        other.orderType == orderType &&
+        other.customerMessage == customerMessage;
   }
 
   @override
@@ -88,7 +92,8 @@ class Menu with EquatableMixin, IdModel {
         isCredit.hashCode ^
         tableId.hashCode ^
         billId.hashCode ^
-        orderType.hashCode;
+        orderType.hashCode ^
+        customerMessage.hashCode;
   }
 
   /// Copy this instance with new values, while preserving existing ones if not provided
@@ -107,6 +112,7 @@ class Menu with EquatableMixin, IdModel {
     int? tableId,
     int? billId,
     String? orderType,
+    String? customerMessage,
   }) {
     return Menu(
         title: title ?? this.title,
@@ -122,7 +128,8 @@ class Menu with EquatableMixin, IdModel {
         isAmount: isAmount ?? this.isAmount,
         tableId: tableId ?? this.tableId,
         billId: billId ?? this.billId,
-        orderType: orderType ?? this.orderType);
+        orderType: orderType ?? this.orderType,
+        customerMessage: customerMessage ?? this.customerMessage);
   }
 
   /// Convert this Menu instance to a JSON map
@@ -141,7 +148,8 @@ class Menu with EquatableMixin, IdModel {
       'isAmount': isAmount,
       'tableId': tableId,
       'billId': billId,
-      'orderType': orderType
+      'orderType': orderType,
+      'customerMessage': customerMessage
     };
   }
 
@@ -163,7 +171,8 @@ class Menu with EquatableMixin, IdModel {
         isAmount: json['isAmount'] as bool?,
         tableId: _parseToInt(json['tableId']),
         billId: _parseToInt(json['billId']),
-        orderType: json['orderType'] as String?);
+        orderType: json['orderType'] as String?,
+        customerMessage: json['customerMessage'] as String?);
   }
 
   /// Helper method to safely parse price values to int
@@ -192,6 +201,7 @@ class Menu with EquatableMixin, IdModel {
         'isAmount: $isAmount, '
         'tableId: $tableId, '
         'billId: $billId, '
-        'orderType: $orderType)';
+        'orderType: $orderType, '
+        'customerMessage: $customerMessage)';
   }
 }

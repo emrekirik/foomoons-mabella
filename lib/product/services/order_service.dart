@@ -56,7 +56,7 @@ class OrderService {
         'title': item.title ?? '',
         'status': 'hazırlanıyor',
         'businessId': businessId,
-        'customerMessage': '',
+        'customerMessage': item.customerMessage ?? '',
         'orderType': item.orderType ?? 'Bar',
       };
 

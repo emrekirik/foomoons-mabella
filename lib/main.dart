@@ -68,7 +68,10 @@ class _MyAppState extends ConsumerState<MyApp> {
     } catch (e) {
       debugPrint('❌ Uygulama başlatma hatası: $e');
       if (mounted && e.toString().contains('BusinessId bulunamadı')) {
-        Navigator.of(context).pushReplacementNamed('/login');
+        // Use navigatorKey instead of context
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          navigatorKey.currentState?.pushReplacementNamed('/login');
+        });
       }
     }
   }
