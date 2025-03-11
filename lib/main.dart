@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:foomoons/featured/splash/splash_screen.dart';
 import 'package:foomoons/featured/tab/tab_mobile_view.dart';
+import 'package:foomoons/featured/auth/login_view.dart';
 import 'package:foomoons/product/providers/app_providers.dart';
 import 'package:foomoons/product/services/firebase_messaging_service.dart';
 import 'package:flutter/services.dart';
@@ -61,8 +62,15 @@ class _MyAppState extends ConsumerState<MyApp> {
   }
 
   Future<void> _initializeFirebaseMessaging() async {
-    final messagingService = ref.read(firebaseMessagingServiceProvider);
-    await messagingService.initialize();
+    try {
+      final messagingService = ref.read(firebaseMessagingServiceProvider);
+      await messagingService.initialize();
+    } catch (e) {
+      debugPrint('❌ Uygulama başlatma hatası: $e');
+      if (mounted && e.toString().contains('BusinessId bulunamadı')) {
+        Navigator.of(context).pushReplacementNamed('/login');
+      }
+    }
   }
 
   @override
@@ -74,6 +82,7 @@ class _MyAppState extends ConsumerState<MyApp> {
       initialRoute: '/',
       routes: {
         '/': (context) => const SplashScreen(),
+        '/login': (context) => LoginView(),
         '/tab': (context) => Consumer(builder: (context, ref, child) {
               final providedIndex =
                   ModalRoute.of(context)?.settings.arguments as int?;

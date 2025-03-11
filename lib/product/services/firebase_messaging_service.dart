@@ -32,60 +32,67 @@ class FirebaseMessagingService {
   FirebaseMessagingService(this._ref);
 
   Future<void> initialize() async {
-    final authService = _ref.read(authServiceProvider);
-    final businessId = await authService.getValidatedBusinessId();
-    print('businessId: $businessId');
     try {
+      final authService = _ref.read(authServiceProvider);
+      final businessId = await authService.getValidatedBusinessId();
+      print('businessId: $businessId');
+
       // Skip for Windows platform
       if (Platform.isWindows) {
         debugPrint('${Platform.operatingSystem}: Firebase Messaging bu platformda desteklenmiyor');
         return;
       }
 
-      // Bildirim izinlerini platform bağımsız olarak ayarla
-      await _messaging.setForegroundNotificationPresentationOptions(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
-
-      final settings = await _messaging.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
-
-      if (settings.authorizationStatus == AuthorizationStatus.authorized ||
-          settings.authorizationStatus == AuthorizationStatus.provisional) {
-        debugPrint('${Platform.operatingSystem}: Bildirim izni alındı');
-
-        // Topic subscription with dynamic businessId
-        final topicName = 'kafe_$businessId';
-        await _messaging.subscribeToTopic(topicName);
-        debugPrint('Topic\'e abone olundu: $topicName');
-
-        // iOS ve macOS için APNS token kontrolü
-        if (Platform.isIOS || Platform.isMacOS) {
-          await _checkAPNSToken();
-        }
-
-        // FCM token al ve logla
-        String? token = await _messaging.getToken();
-        if (token != null) {
-          debugPrint('FCM Token: $token');
-        } else {
-          debugPrint('FCM token alınamadı');
-        }
-
-        // Bildirim dinleyicilerini ayarla
-        FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
-        FirebaseMessaging.onMessageOpenedApp
-            .listen(_handleBackgroundMessageClick);
-      } else {
-        debugPrint('${Platform.operatingSystem}: Bildirim izni reddedildi');
-      }
+      // Rest of initialization code...
+      await _initializeMessaging(businessId);
     } catch (e) {
       debugPrint('Firebase Messaging başlatma hatası: $e');
+      rethrow; // Rethrow the error to be handled by the caller
+    }
+  }
+
+  Future<void> _initializeMessaging(int businessId) async {
+    // Bildirim izinlerini platform bağımsız olarak ayarla
+    await _messaging.setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    final settings = await _messaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    if (settings.authorizationStatus == AuthorizationStatus.authorized ||
+        settings.authorizationStatus == AuthorizationStatus.provisional) {
+      debugPrint('${Platform.operatingSystem}: Bildirim izni alındı');
+
+      // Topic subscription with dynamic businessId
+      final topicName = 'kafe_$businessId';
+      await _messaging.subscribeToTopic(topicName);
+      debugPrint('Topic\'e abone olundu: $topicName');
+
+      // iOS ve macOS için APNS token kontrolü
+      if (Platform.isIOS || Platform.isMacOS) {
+        await _checkAPNSToken();
+      }
+
+      // FCM token al ve logla
+      String? token = await _messaging.getToken();
+      if (token != null) {
+        debugPrint('FCM Token: $token');
+      } else {
+        debugPrint('FCM token alınamadı');
+      }
+
+      // Bildirim dinleyicilerini ayarla
+      FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+      FirebaseMessaging.onMessageOpenedApp
+          .listen(_handleBackgroundMessageClick);
+    } else {
+      debugPrint('${Platform.operatingSystem}: Bildirim izni reddedildi');
     }
   }
 

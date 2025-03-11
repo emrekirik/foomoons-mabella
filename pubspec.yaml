@@ -136,7 +136,7 @@ msix_config:
   publisher_display_name: Foomoons
   identity_name: Foomoons.Foomoons
   publisher: CN=3C610132-8838-4D68-93EB-B2F473705408
-  msix_version: 1.0.4.0
+  msix_version: 1.0.5.0
   logo_path: assets/images/logo.png
   capabilities: internetClient
   store: true

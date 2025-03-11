@@ -5,6 +5,7 @@ import 'package:foomoons/product/init/config/app_environment.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:foomoons/product/providers/app_providers.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
 class AuthService {
   final String baseUrl = AppEnvironmentItems.baseUrl.value;
