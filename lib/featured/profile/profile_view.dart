@@ -1147,7 +1147,7 @@ class _CustomTitle extends StatelessWidget {
   }
 }
 
-class _SettingsSection extends StatefulWidget {
+class _SettingsSection extends ConsumerStatefulWidget {
   const _SettingsSection({
     required this.deviceHeight,
   });
@@ -1155,14 +1155,15 @@ class _SettingsSection extends StatefulWidget {
   final double deviceHeight;
 
   @override
-  State<_SettingsSection> createState() => _SettingsSectionState();
+  ConsumerState<_SettingsSection> createState() => _SettingsSectionState();
 }
 
-class _SettingsSectionState extends State<_SettingsSection> {
-  bool isOnlineOrdersEnabled = false;
-
+class _SettingsSectionState extends ConsumerState<_SettingsSection> {
   @override
   Widget build(BuildContext context) {
+    final profileState = ref.watch(profileProvider);
+    final profileNotifier = ref.read(profileProvider.notifier);
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -1205,20 +1206,21 @@ class _SettingsSectionState extends State<_SettingsSection> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      isOnlineOrdersEnabled ? 'Açık' : 'Kapalı',
+                      profileState.isOnlineOrderEnabled != null ? (profileState.isOnlineOrderEnabled! ? 'Açık' : 'Kapalı') : 'Bilinmiyor',
                       style: GoogleFonts.poppins(
                         fontSize: 14,
-                        color: isOnlineOrdersEnabled ? Colors.green : Colors.grey[600],
+                        color: profileState.isOnlineOrderEnabled != null ? (profileState.isOnlineOrderEnabled! ? Colors.green : Colors.grey[600]) : Colors.grey[600],
                       ),
                     ),
                   ],
                 ),
                 Switch(
-                  value: isOnlineOrdersEnabled,
-                  onChanged: (value) {
-                    setState(() {
-                      isOnlineOrdersEnabled = value;
-                    });
+                  value: profileState.isOnlineOrderEnabled ?? true,
+                  onChanged: (value) async {
+                    await profileNotifier.updateProfileInfo(
+                      fieldName: 'isOnlineOrderEnabled',
+                      updatedValue: value.toString(),
+                    );
                   },
                   activeColor: Colors.orange[400],
                   activeTrackColor: Colors.orange[200],

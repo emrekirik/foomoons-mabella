@@ -39,6 +39,7 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
           businessAddress: data['adress'] ?? '',
           businessInfo: data['info'] ?? '',
           isSelfService: data['isSelfService'] ?? false,
+          isOnlineOrderEnabled: data['isOnlineOrderEnabled'] ?? true,
         );
       } else {
         throw Exception('İşletme bilgisi API hatası : ${response.statusCode}');
@@ -242,6 +243,7 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
           'adress': fieldName == 'businessAddress' ? updatedValue : state.businessAddress,
           'phoneNumber': fieldName == 'phoneNumber' ? updatedValue : state.phoneNumber,
           'photo': fieldName == 'photo' ? updatedValue : state.photoURL,
+          'isOnlineOrderEnabled': fieldName == 'isOnlineOrderEnabled' ? updatedValue == 'true' : state.isOnlineOrderEnabled,
         });
       }
 
@@ -267,6 +269,7 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
             businessAddress: businessData['adress'],
             phoneNumber: businessData['phoneNumber'],
             photoURL: businessData['photo'],
+            isOnlineOrderEnabled: businessData['isOnlineOrderEnabled'] ?? true,
           );
 
           // Cache'i güncelleme
@@ -432,6 +435,8 @@ class ProfileState {
   final String? printer2IpAddress;
   final String? printer2Name;
   final bool? isSelfService;
+  final bool? isOnlineOrderEnabled;
+
   const ProfileState({
     this.name,
     this.email,
@@ -448,6 +453,7 @@ class ProfileState {
     this.printer2IpAddress,
     this.printer2Name,
     this.isSelfService,
+    this.isOnlineOrderEnabled = true,
   });
 
   ProfileState copyWith({
@@ -466,6 +472,7 @@ class ProfileState {
     String? printer2IpAddress,
     String? printer2Name,
     bool? isSelfService,
+    bool? isOnlineOrderEnabled,
   }) {
     return ProfileState(
       name: name ?? this.name,
@@ -483,6 +490,7 @@ class ProfileState {
       printer2IpAddress: printer2IpAddress ?? this.printer2IpAddress,
       printer2Name: printer2Name ?? this.printer2Name,
       isSelfService: isSelfService ?? this.isSelfService,
+      isOnlineOrderEnabled: isOnlineOrderEnabled ?? this.isOnlineOrderEnabled,
     );
   }
 }
