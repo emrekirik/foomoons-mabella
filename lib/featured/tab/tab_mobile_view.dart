@@ -254,6 +254,19 @@ List<NavigationRailDestination> _buildNavigationItems(String userType, bool isSe
         label: buildLabel('Menu'),
       ),
     ];
+  } else if (userType == 'mutfak') {
+    return [
+      NavigationRailDestination(
+        icon: const Icon(Icons.monitor_rounded),
+        selectedIcon: const Icon(Icons.monitor_rounded),
+        label: buildLabel('Siparişler'),
+      ),
+      NavigationRailDestination(
+        icon: const Icon(Icons.restaurant_menu_sharp),
+        selectedIcon: const Icon(Icons.restaurant_menu),
+        label: buildLabel('Menu'),
+      ),
+    ];
   } else if (userType == 'kafe') {
     if (isSelfService) {
       return [
@@ -307,6 +320,11 @@ List<Widget> _buildPageViews(String userType, bool isSelfService) {
   } else if (userType == 'garson') {
     return [
       TablesMobileView(isSelfService: isSelfService),
+      const MenuMobileView(),
+    ];
+  } else if (userType == 'mutfak') {
+    return [
+      const AdminMobileView(),
       const MenuMobileView(),
     ];
   } else if (userType == 'kafe') {

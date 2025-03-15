@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:foomoons/product/providers/app_providers.dart';
 import 'package:flutter/rendering.dart';
+import 'package:foomoons/product/services/payment_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:foomoons/product/services/bar_printer_service.dart';
 import 'package:foomoons/product/services/kitchen_printer_service.dart';
@@ -52,19 +53,21 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
               .read(tablesProvider.notifier)
               .fetchTableBillApi(widget.tableId);
         }
-        
+
         // Menu ürünlerini sadece boşsa veya cache süresi dolduysa çek
         if (mounted) {
           final menuState = ref.read(menuProvider);
           if (menuState.products == null || menuState.categories == null) {
             await ref.read(menuProvider.notifier).fetchAndLoad();
           }
-          
+
           // Her durumda ilk kategoriyi seç (eğer kategoriler varsa)
           if (mounted) {
             final categories = ref.read(menuProvider).categories;
             if (categories != null && categories.isNotEmpty) {
-              ref.read(menuProvider.notifier).selectCategory(categories.first.title);
+              ref
+                  .read(menuProvider.notifier)
+                  .selectCategory(categories.first.title);
             }
           }
         }
@@ -111,26 +114,29 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
           canPop: false,
           onPopInvoked: (didPop) async {
             if (didPop) return;
-            
-            final tableBill = ref.read(tablesProvider).getTableBill(widget.tableId);
+
+            final tableBill =
+                ref.read(tablesProvider).getTableBill(widget.tableId);
             final userType = ref.read(userTypeProvider).value ?? 'kafe';
-            
+
             if (userType == 'garson') {
               // Debug için siparişlerin durumunu kontrol et
               print('Tüm siparişler:');
               for (var item in tableBill) {
                 print('Ürün: ${item.title}, Status: ${item.status}');
               }
-              
+
               // Yeni siparişleri kontrol et (status değeri null veya 'yeni' olanlar)
-              final newOrders = tableBill.where((item) => 
-                item.status == null || // Status null ise
-                item.status == '' || // Status boş string ise
-                item.status == 'yeni' // Status 'yeni' ise
-              ).toList();
-              
+              final newOrders = tableBill
+                  .where((item) =>
+                          item.status == null || // Status null ise
+                          item.status == '' || // Status boş string ise
+                          item.status == 'yeni' // Status 'yeni' ise
+                      )
+                  .toList();
+
               print('Yeni sipariş sayısı: ${newOrders.length}');
-              
+
               if (newOrders.isNotEmpty) {
                 final result = await showDialog<bool>(
                   context: context,
@@ -223,12 +229,15 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                 );
                 if (result == true && context.mounted) {
                   // Sadece yeni siparişleri temizle
-                  final existingOrders = tableBill.where((item) => 
-                    item.status != null && 
-                    item.status != '' && 
-                    item.status != 'yeni'
-                  ).toList();
-                  ref.read(tablesProvider.notifier).updateTableBill(widget.tableId, existingOrders);
+                  final existingOrders = tableBill
+                      .where((item) =>
+                          item.status != null &&
+                          item.status != '' &&
+                          item.status != 'yeni')
+                      .toList();
+                  ref
+                      .read(tablesProvider.notifier)
+                      .updateTableBill(widget.tableId, existingOrders);
                   Navigator.of(context).pop();
                 }
               } else {
@@ -260,15 +269,21 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                           ),
                         ),
                         leading: IconButton(
-                          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
+                          icon: const Icon(Icons.arrow_back_ios_new,
+                              color: Colors.black),
                           onPressed: () async {
-                            final tableBill = ref.read(tablesProvider).getTableBill(widget.tableId);
-                            final userType = ref.read(userTypeProvider).value ?? 'kafe';
-                            
+                            final tableBill = ref
+                                .read(tablesProvider)
+                                .getTableBill(widget.tableId);
+                            final userType =
+                                ref.read(userTypeProvider).value ?? 'kafe';
+
                             if (userType == 'garson') {
                               // Yeni siparişleri kontrol et
-                              final newOrders = tableBill.where((item) => item.status == 'yeni').toList();
-                              
+                              final newOrders = tableBill
+                                  .where((item) => item.status == 'yeni')
+                                  .toList();
+
                               if (newOrders.isNotEmpty) {
                                 final result = await showDialog<bool>(
                                   context: context,
@@ -285,10 +300,12 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                                       ),
                                       child: Column(
                                         mainAxisSize: MainAxisSize.min,
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
                                             children: [
                                               Text(
                                                 'Dikkat',
@@ -300,7 +317,8 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                                                 ),
                                               ),
                                               IconButton(
-                                                onPressed: () => Navigator.pop(context, false),
+                                                onPressed: () => Navigator.pop(
+                                                    context, false),
                                                 icon: Icon(
                                                   Icons.close,
                                                   color: Colors.grey[400],
@@ -319,10 +337,12 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                                           ),
                                           const SizedBox(height: 32),
                                           Row(
-                                            mainAxisAlignment: MainAxisAlignment.end,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.end,
                                             children: [
                                               TextButton(
-                                                onPressed: () => Navigator.pop(context, false),
+                                                onPressed: () => Navigator.pop(
+                                                    context, false),
                                                 child: Text(
                                                   'Vazgeç',
                                                   style: GoogleFonts.poppins(
@@ -335,15 +355,19 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                                               ElevatedButton(
                                                 style: ElevatedButton.styleFrom(
                                                   backgroundColor: Colors.red,
-                                                  padding: const EdgeInsets.symmetric(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
                                                     horizontal: 24,
                                                     vertical: 12,
                                                   ),
                                                   shape: RoundedRectangleBorder(
-                                                    borderRadius: BorderRadius.circular(12),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12),
                                                   ),
                                                 ),
-                                                onPressed: () => Navigator.pop(context, true),
+                                                onPressed: () => Navigator.pop(
+                                                    context, true),
                                                 child: Text(
                                                   'Çık',
                                                   style: GoogleFonts.poppins(
@@ -361,8 +385,13 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                                 );
                                 if (result == true && context.mounted) {
                                   // Sadece yeni siparişleri temizle
-                                  final existingOrders = tableBill.where((item) => item.status != 'yeni').toList();
-                                  ref.read(tablesProvider.notifier).updateTableBill(widget.tableId, existingOrders);
+                                  final existingOrders = tableBill
+                                      .where((item) => item.status != 'yeni')
+                                      .toList();
+                                  ref
+                                      .read(tablesProvider.notifier)
+                                      .updateTableBill(
+                                          widget.tableId, existingOrders);
                                   Navigator.of(context).pop();
                                 }
                               } else {
@@ -469,18 +498,19 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                                                       final category =
                                                           categories[index];
                                                       return Container(
-                                                        decoration: BoxDecoration(
+                                                        decoration:
+                                                            BoxDecoration(
                                                           border: Border(
-                                                            left:
-                                                                const BorderSide(
-                                                                    color: Colors
-                                                                        .black12,
-                                                                    width: 1),
+                                                            left: const BorderSide(
+                                                                color: Colors
+                                                                    .black12,
+                                                                width: 1),
                                                             bottom: BorderSide(
                                                               color: selectedCategory ==
                                                                       category
                                                                           .title
-                                                                  ? Colors.orange
+                                                                  ? Colors
+                                                                      .orange
                                                                   : Colors
                                                                       .transparent, // Seçili kategori altına çizgi ekle
                                                               width:
@@ -493,7 +523,8 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                                                           child: InkWell(
                                                             splashColor: Colors
                                                                 .orange
-                                                                .withOpacity(0.6),
+                                                                .withOpacity(
+                                                                    0.6),
                                                             onTap: () {
                                                               menuNotifier
                                                                   .selectCategory(
@@ -523,7 +554,8 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                                                         ),
                                                       );
                                                     },
-                                                    itemCount: categories.length,
+                                                    itemCount:
+                                                        categories.length,
                                                   ),
                                           ),
                                         ],
@@ -556,31 +588,52 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                                                       shape:
                                                           RoundedRectangleBorder(
                                                         borderRadius:
-                                                            BorderRadius.circular(
-                                                                15),
+                                                            BorderRadius
+                                                                .circular(15),
                                                       ),
                                                       child: InkWell(
                                                         borderRadius:
-                                                            BorderRadius.circular(
-                                                                15),
-                                                        splashColor: Colors.orange
+                                                            BorderRadius
+                                                                .circular(15),
+                                                        splashColor: Colors
+                                                            .orange
                                                             .withOpacity(0.3),
                                                         highlightColor: Colors
                                                             .orange
                                                             .withOpacity(0.1),
                                                         onTap: () {
-                                                          final userType = ref.read(userTypeProvider).value ?? 'kafe';
-                                                          if (userType == 'garson') {
+                                                          final userType = ref
+                                                                  .read(
+                                                                      userTypeProvider)
+                                                                  .value ??
+                                                              'kafe';
+                                                          if (userType ==
+                                                              'garson') {
                                                             // Garson için sadece ön tarafta göster
-                                                            final newItem = item.copyWith(
-                                                              tableId: widget.tableId,
+                                                            final newItem =
+                                                                item.copyWith(
+                                                              tableId: widget
+                                                                  .tableId,
                                                               piece: 1,
                                                             );
-                                                            
+
                                                             setState(() {
-                                                              final tableBill = ref.read(tablesProvider).getTableBill(widget.tableId).toList();
-                                                              tableBill.add(newItem);
-                                                              ref.read(tablesProvider.notifier).updateTableBill(widget.tableId, tableBill);
+                                                              final tableBill = ref
+                                                                  .read(
+                                                                      tablesProvider)
+                                                                  .getTableBill(
+                                                                      widget
+                                                                          .tableId)
+                                                                  .toList();
+                                                              tableBill
+                                                                  .add(newItem);
+                                                              ref
+                                                                  .read(tablesProvider
+                                                                      .notifier)
+                                                                  .updateTableBill(
+                                                                      widget
+                                                                          .tableId,
+                                                                      tableBill);
                                                             });
                                                           } else {
                                                             // Diğer kullanıcı tipleri için normal API çağrısı
@@ -596,7 +649,8 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                                                           padding:
                                                               const EdgeInsets
                                                                   .symmetric(
-                                                                  horizontal: 10),
+                                                                  horizontal:
+                                                                      10),
                                                           child: Column(
                                                             mainAxisAlignment:
                                                                 MainAxisAlignment
@@ -610,13 +664,15 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                                                                       '',
                                                                   style:
                                                                       const TextStyle(
-                                                                    fontSize: 16,
+                                                                    fontSize:
+                                                                        16,
                                                                   )),
                                                               Text(
                                                                   '₺${item.price}',
                                                                   style:
                                                                       const TextStyle(
-                                                                    fontSize: 16,
+                                                                    fontSize:
+                                                                        16,
                                                                   )),
                                                             ],
                                                           ),
@@ -633,7 +689,8 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                               ),
                             ),
                             //Alt taraf adisyon listesi
-                            NotificationListener<DraggableScrollableNotification>(
+                            NotificationListener<
+                                DraggableScrollableNotification>(
                               onNotification: (notification) {
                                 return true;
                               },
@@ -648,9 +705,11 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                                   return Consumer(
                                     builder: (context, ref, child) {
                                       final tableBill = ref
-                                          .watch(tablesProvider.select((state) =>
-                                              state.getTableBill(widget.tableId)))
-                                          .where((item) => item.isAmount != true)
+                                          .watch(tablesProvider.select(
+                                              (state) => state.getTableBill(
+                                                  widget.tableId)))
+                                          .where(
+                                              (item) => item.isAmount != true)
                                           .toList();
                                       final totalAmount = tableBill.fold(
                                           0.0,
@@ -663,9 +722,12 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                                       return Container(
                                         decoration: BoxDecoration(
                                             color: Colors.white,
-                                            borderRadius: const BorderRadius.only(
-                                                topLeft: Radius.circular(32),
-                                                topRight: Radius.circular(32)),
+                                            borderRadius:
+                                                const BorderRadius.only(
+                                                    topLeft:
+                                                        Radius.circular(32),
+                                                    topRight:
+                                                        Radius.circular(32)),
                                             border: const Border(
                                                 top: BorderSide(
                                                     color: Colors.black12,
@@ -704,12 +766,14 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                                               ),
                                             ),
                                             Padding(
-                                              padding: const EdgeInsets.all(12.0),
+                                              padding:
+                                                  const EdgeInsets.all(12.0),
                                               child: Text(
                                                 widget.tableTitle,
                                                 style: const TextStyle(
                                                     fontSize: 20,
-                                                    fontWeight: FontWeight.bold),
+                                                    fontWeight:
+                                                        FontWeight.bold),
                                               ),
                                             ),
                                             ListView.separated(
@@ -719,12 +783,13 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                                               separatorBuilder:
                                                   (context, index) =>
                                                       const Divider(
-                                                    indent: 10,
-                                                    endIndent: 10,
-                                                  ),
+                                                indent: 10,
+                                                endIndent: 10,
+                                              ),
                                               itemCount: tableBill.length,
-                                              itemBuilder: (BuildContext context,
-                                                  int index) {
+                                              itemBuilder:
+                                                  (BuildContext context,
+                                                      int index) {
                                                 final item = tableBill[index];
 
                                                 final itemKey =
@@ -732,7 +797,8 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
 
                                                 if (!_animationControllers
                                                     .containsKey(itemKey)) {
-                                                  _animationControllers[itemKey] =
+                                                  _animationControllers[
+                                                          itemKey] =
                                                       AnimationController(
                                                     duration: const Duration(
                                                         milliseconds: 300),
@@ -742,8 +808,9 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
 
                                                 return SizeTransition(
                                                   sizeFactor: CurvedAnimation(
-                                                    parent: _animationControllers[
-                                                        itemKey]!,
+                                                    parent:
+                                                        _animationControllers[
+                                                            itemKey]!,
                                                     curve: Curves.easeOut,
                                                   ),
                                                   child: FadeTransition(
@@ -757,18 +824,30 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                                                       title: Text(
                                                         item.title ?? '',
                                                         style: TextStyle(
-                                                          fontWeight: item.status == 'yeni' 
-                                                              ? FontWeight.bold 
-                                                              : FontWeight.normal,
+                                                          fontWeight: item
+                                                                      .status ==
+                                                                  'yeni'
+                                                              ? FontWeight.bold
+                                                              : FontWeight
+                                                                  .normal,
                                                         ),
                                                       ),
-                                                      tileColor: item.status == 'yeni' 
-                                                          ? Colors.orange.withOpacity(0.1)
+                                                      tileColor: item.status ==
+                                                              'yeni'
+                                                          ? Colors.orange
+                                                              .withOpacity(0.1)
                                                           : null,
-                                                      shape: RoundedRectangleBorder(
-                                                        borderRadius: BorderRadius.circular(8),
-                                                        side: item.status == 'yeni'
-                                                            ? const BorderSide(color: Colors.orange, width: 1)
+                                                      shape:
+                                                          RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(8),
+                                                        side: item.status ==
+                                                                'yeni'
+                                                            ? const BorderSide(
+                                                                color: Colors
+                                                                    .orange,
+                                                                width: 1)
                                                             : BorderSide.none,
                                                       ),
                                                       subtitle: Column(
@@ -779,16 +858,50 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                                                             MainAxisSize.min,
                                                         children: [
                                                           Text(
-                                                              '${item.piece ?? 1} adet'),
+                                                            '${item.piece ?? 1} adet',
+                                                            style: TextStyle(
+                                                              color:
+                                                                  item.status ==
+                                                                          'yeni'
+                                                                      ? Colors
+                                                                          .orange
+                                                                      : null,
+                                                              fontWeight:
+                                                                  item.status ==
+                                                                          'yeni'
+                                                                      ? FontWeight
+                                                                          .bold
+                                                                      : null,
+                                                            ),
+                                                          ),
                                                           Text(
-                                                              '₺${(item.price ?? 0) * (item.piece ?? 1)}'),
-                                                          if (item.status == 'yeni')
+                                                            '₺${(item.price ?? 0) * (item.piece ?? 1)}',
+                                                            style: TextStyle(
+                                                              color:
+                                                                  item.status ==
+                                                                          'yeni'
+                                                                      ? Colors
+                                                                          .orange
+                                                                      : null,
+                                                              fontWeight:
+                                                                  item.status ==
+                                                                          'yeni'
+                                                                      ? FontWeight
+                                                                          .bold
+                                                                      : null,
+                                                            ),
+                                                          ),
+                                                          if (item.status ==
+                                                              'yeni')
                                                             const Text(
                                                               'Yeni Sipariş',
                                                               style: TextStyle(
-                                                                color: Colors.orange,
+                                                                color: Colors
+                                                                    .orange,
                                                                 fontSize: 12,
-                                                                fontWeight: FontWeight.bold,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
                                                               ),
                                                             ),
                                                         ],
@@ -797,7 +910,8 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                                                         mainAxisSize:
                                                             MainAxisSize.min,
                                                         children: [
-                                                          item.status != 'ödendi'
+                                                          item.status !=
+                                                                  'ödendi'
                                                               ? const SizedBox()
                                                               : Text(
                                                                   '${item.status}',
@@ -810,104 +924,428 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                                                                       color: Colors
                                                                           .green),
                                                                 ),
-                                                          if (userType == 'garson' && item.status == 'yeni')
-                                                            IconButton(
-                                                              icon: const Icon(Icons.message_outlined),
-                                                              onPressed: () async {
-                                                                final message = await showModalBottomSheet<String>(
-                                                                  context: context,
-                                                                  isScrollControlled: true,
-                                                                  shape: const RoundedRectangleBorder(
-                                                                    borderRadius: BorderRadius.vertical(
-                                                                      top: Radius.circular(20),
-                                                                    ),
-                                                                  ),
-                                                                  builder: (BuildContext context) {
-                                                                    final messageController = TextEditingController(text: item.customerMessage);
-                                                                    return Padding(
-                                                                      padding: EdgeInsets.only(
-                                                                        bottom: MediaQuery.of(context).viewInsets.bottom,
+                                                          if (userType ==
+                                                                  'admin' &&
+                                                              item.status !=
+                                                                  'ödendi')
+                                                            if (userType ==
+                                                                'admin')
+                                                              IconButton(
+                                                                icon: const Icon(
+                                                                    Icons
+                                                                        .delete_forever,
+                                                                    color: Colors
+                                                                        .red),
+                                                                onPressed:
+                                                                    () async {
+                                                                  final result =
+                                                                      await showDialog<
+                                                                          bool>(
+                                                                    context:
+                                                                        context,
+                                                                    builder:
+                                                                        (context) =>
+                                                                            Dialog(
+                                                                      shape:
+                                                                          RoundedRectangleBorder(
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(20),
                                                                       ),
-                                                                      child: Container(
-                                                                        padding: const EdgeInsets.all(16),
-                                                                        child: Column(
-                                                                          mainAxisSize: MainAxisSize.min,
-                                                                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                                                                      child:
+                                                                          Container(
+                                                                        width:
+                                                                            400,
+                                                                        padding: const EdgeInsets
+                                                                            .all(
+                                                                            32),
+                                                                        decoration:
+                                                                            BoxDecoration(
+                                                                          color:
+                                                                              Colors.white,
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(20),
+                                                                        ),
+                                                                        child:
+                                                                            Column(
+                                                                          mainAxisSize:
+                                                                              MainAxisSize.min,
+                                                                          crossAxisAlignment:
+                                                                              CrossAxisAlignment.start,
                                                                           children: [
                                                                             Row(
                                                                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                                               children: [
                                                                                 Text(
-                                                                                  'Ürün Açıklaması',
+                                                                                  'Ürünü Sil',
                                                                                   style: GoogleFonts.poppins(
-                                                                                    fontSize: 20,
+                                                                                    fontSize: 24,
                                                                                     fontWeight: FontWeight.w600,
+                                                                                    color: Colors.black,
+                                                                                    letterSpacing: -0.5,
                                                                                   ),
                                                                                 ),
                                                                                 IconButton(
-                                                                                  icon: const Icon(Icons.close),
-                                                                                  onPressed: () => Navigator.pop(context),
+                                                                                  onPressed: () => Navigator.pop(context, false),
+                                                                                  icon: Icon(
+                                                                                    Icons.close,
+                                                                                    color: Colors.grey[400],
+                                                                                    size: 24,
+                                                                                  ),
                                                                                 ),
                                                                               ],
                                                                             ),
-                                                                            const SizedBox(height: 16),
-                                                                            TextField(
-                                                                              controller: messageController,
-                                                                              decoration: InputDecoration(
-                                                                                hintText: 'Ürün için açıklama girin...',
-                                                                                border: OutlineInputBorder(
-                                                                                  borderRadius: BorderRadius.circular(12),
-                                                                                ),
-                                                                                filled: true,
-                                                                                fillColor: Colors.grey[100],
-                                                                              ),
-                                                                              maxLines: 3,
-                                                                            ),
-                                                                            const SizedBox(height: 16),
-                                                                            ElevatedButton(
-                                                                              style: ElevatedButton.styleFrom(
-                                                                                backgroundColor: Colors.orange,
-                                                                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                                                                shape: RoundedRectangleBorder(
-                                                                                  borderRadius: BorderRadius.circular(12),
-                                                                                ),
-                                                                              ),
-                                                                              onPressed: () {
-                                                                                Navigator.pop(context, messageController.text);
-                                                                              },
-                                                                              child: Text(
-                                                                                'Kaydet',
-                                                                                style: GoogleFonts.poppins(
-                                                                                  fontSize: 16,
-                                                                                  color: Colors.white,
-                                                                                ),
+                                                                            const SizedBox(height: 24),
+                                                                            Text(
+                                                                              'Bu ürünü silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.',
+                                                                              style: GoogleFonts.poppins(
+                                                                                fontSize: 16,
+                                                                                color: Colors.grey[700],
                                                                               ),
                                                                             ),
-                                                                            const SizedBox(height: 16),
+                                                                            const SizedBox(height: 32),
+                                                                            Row(
+                                                                              mainAxisAlignment: MainAxisAlignment.end,
+                                                                              children: [
+                                                                                TextButton(
+                                                                                  onPressed: () => Navigator.pop(context, false),
+                                                                                  child: Text(
+                                                                                    'Vazgeç',
+                                                                                    style: GoogleFonts.poppins(
+                                                                                      fontSize: 16,
+                                                                                      color: Colors.grey[600],
+                                                                                    ),
+                                                                                  ),
+                                                                                ),
+                                                                                const SizedBox(width: 16),
+                                                                                ElevatedButton(
+                                                                                  style: ElevatedButton.styleFrom(
+                                                                                    backgroundColor: Colors.red,
+                                                                                    padding: const EdgeInsets.symmetric(
+                                                                                      horizontal: 24,
+                                                                                      vertical: 12,
+                                                                                    ),
+                                                                                    shape: RoundedRectangleBorder(
+                                                                                      borderRadius: BorderRadius.circular(12),
+                                                                                    ),
+                                                                                  ),
+                                                                                  onPressed: () => Navigator.pop(context, true),
+                                                                                  child: Text(
+                                                                                    'Sil',
+                                                                                    style: GoogleFonts.poppins(
+                                                                                      fontSize: 16,
+                                                                                      color: Colors.white,
+                                                                                    ),
+                                                                                  ),
+                                                                                ),
+                                                                              ],
+                                                                            ),
                                                                           ],
                                                                         ),
                                                                       ),
-                                                                    );
-                                                                  },
-                                                                );
+                                                                    ),
+                                                                  );
 
-                                                                if (message != null) {
-                                                                  setState(() {
-                                                                    final tableBill = ref.read(tablesProvider).getTableBill(widget.tableId).toList();
-                                                                    final index = tableBill.indexOf(item);
-                                                                    if (index != -1) {
-                                                                      tableBill[index] = item.copyWith(customerMessage: message);
-                                                                      ref.read(tablesProvider.notifier).updateTableBill(widget.tableId, tableBill);
+                                                                  if (result ==
+                                                                          true &&
+                                                                      item.id !=
+                                                                          null) {
+                                                                    final success =
+                                                                        await PaymentService.deleteBillItem(
+                                                                            item.id!);
+                                                                    if (success &&
+                                                                        mounted) {
+                                                                      ScaffoldMessenger.of(
+                                                                              context)
+                                                                          .showSnackBar(
+                                                                        const SnackBar(
+                                                                          content:
+                                                                              Text('Ürün başarıyla silindi'),
+                                                                          backgroundColor:
+                                                                              Colors.green,
+                                                                        ),
+                                                                      );
+                                                                      // Tabloyu yenile
+                                                                      ref
+                                                                          .read(tablesProvider
+                                                                              .notifier)
+                                                                          .fetchTableBillApi(
+                                                                              widget.tableId);
+                                                                    } else if (mounted) {
+                                                                      ScaffoldMessenger.of(
+                                                                              context)
+                                                                          .showSnackBar(
+                                                                        const SnackBar(
+                                                                          content:
+                                                                              Text('Ürün silinirken bir hata oluştu'),
+                                                                          backgroundColor:
+                                                                              Colors.red,
+                                                                        ),
+                                                                      );
                                                                     }
-                                                                  });
-                                                                }
-                                                              },
+                                                                  }
+                                                                },
+                                                              ),
+                                                          if (userType ==
+                                                                  'garson' &&
+                                                              item.status ==
+                                                                  'yeni')
+                                                            Row(
+                                                              mainAxisSize:
+                                                                  MainAxisSize
+                                                                      .min,
+                                                              children: [
+                                                                Container(
+                                                                  decoration:
+                                                                      BoxDecoration(
+                                                                    color: Colors
+                                                                        .orange
+                                                                        .withOpacity(
+                                                                            0.1),
+                                                                    borderRadius:
+                                                                        BorderRadius
+                                                                            .circular(8),
+                                                                    border: Border.all(
+                                                                        color: Colors
+                                                                            .orange
+                                                                            .withOpacity(0.3)),
+                                                                  ),
+                                                                  child: Row(
+                                                                    mainAxisSize:
+                                                                        MainAxisSize
+                                                                            .min,
+                                                                    children: [
+                                                                      IconButton(
+                                                                        icon: const Icon(
+                                                                            Icons
+                                                                                .remove,
+                                                                            size:
+                                                                                20),
+                                                                        onPressed:
+                                                                            () {
+                                                                          final tableBill =
+                                                                                ref.read(tablesProvider).getTableBill(widget.tableId).toList();
+                                                                          final index =
+                                                                                tableBill.indexOf(item);
+                                                                          if (index != -1 &&
+                                                                                (item.piece ?? 1) > 1) {
+                                                                              tableBill[index] = item.copyWith(piece: (item.piece ?? 1) - 1);
+                                                                              ref.read(tablesProvider.notifier).updateTableBill(widget.tableId, tableBill);
+                                                                          }
+                                                                        },
+                                                                        color: Colors
+                                                                            .orange,
+                                                                        padding: const EdgeInsets
+                                                                            .all(
+                                                                            4),
+                                                                        constraints:
+                                                                            const BoxConstraints(
+                                                                          minWidth:
+                                                                              32,
+                                                                          minHeight:
+                                                                              32,
+                                                                        ),
+                                                                      ),
+                                                                      Container(
+                                                                        constraints:
+                                                                            const BoxConstraints(minWidth: 32),
+                                                                        alignment:
+                                                                            Alignment.center,
+                                                                        child:
+                                                                            Text(
+                                                                          '${item.piece ?? 1}',
+                                                                          style:
+                                                                              const TextStyle(
+                                                                            fontSize:
+                                                                                16,
+                                                                            fontWeight:
+                                                                                FontWeight.bold,
+                                                                            color:
+                                                                                Colors.orange,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      IconButton(
+                                                                        icon: const Icon(
+                                                                            Icons
+                                                                                .add,
+                                                                            size:
+                                                                                20),
+                                                                        onPressed:
+                                                                            () {
+                                                                          final tableBill =
+                                                                                ref.read(tablesProvider).getTableBill(widget.tableId).toList();
+                                                                          final index =
+                                                                                tableBill.indexOf(item);
+                                                                          if (index !=
+                                                                                -1) {
+                                                                              tableBill[index] = item.copyWith(piece: (item.piece ?? 1) + 1);
+                                                                              ref.read(tablesProvider.notifier).updateTableBill(widget.tableId, tableBill);
+                                                                          }
+                                                                        },
+                                                                        color: Colors
+                                                                            .orange,
+                                                                        padding: const EdgeInsets
+                                                                            .all(
+                                                                            4),
+                                                                        constraints:
+                                                                            const BoxConstraints(
+                                                                          minWidth:
+                                                                              32,
+                                                                          minHeight:
+                                                                              32,
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                                IconButton(
+                                                                  icon: const Icon(
+                                                                      Icons
+                                                                          .message_outlined),
+                                                                  onPressed:
+                                                                      () async {
+                                                                    final message =
+                                                                        await showModalBottomSheet<
+                                                                            String>(
+                                                                      context:
+                                                                          context,
+                                                                      isScrollControlled:
+                                                                          true,
+                                                                      shape:
+                                                                          const RoundedRectangleBorder(
+                                                                        borderRadius:
+                                                                            BorderRadius.vertical(
+                                                                          top: Radius.circular(
+                                                                              20),
+                                                                        ),
+                                                                      ),
+                                                                      builder:
+                                                                          (BuildContext
+                                                                              context) {
+                                                                        final messageController =
+                                                                            TextEditingController(text: item.customerMessage);
+                                                                        return Padding(
+                                                                          padding:
+                                                                              EdgeInsets.only(
+                                                                            bottom:
+                                                                                MediaQuery.of(context).viewInsets.bottom,
+                                                                          ),
+                                                                          child:
+                                                                              Container(
+                                                                            padding:
+                                                                                const EdgeInsets.all(16),
+                                                                            child:
+                                                                                Column(
+                                                                              mainAxisSize: MainAxisSize.min,
+                                                                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                                                                              children: [
+                                                                                Row(
+                                                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                  children: [
+                                                                                    Text(
+                                                                                      'Ürün Açıklaması',
+                                                                                      style: GoogleFonts.poppins(
+                                                                                        fontSize: 20,
+                                                                                        fontWeight: FontWeight.w600,
+                                                                                      ),
+                                                                                    ),
+                                                                                    IconButton(
+                                                                                      icon: const Icon(Icons.close),
+                                                                                      onPressed: () => Navigator.pop(context),
+                                                                                    ),
+                                                                                  ],
+                                                                                ),
+                                                                                const SizedBox(height: 16),
+                                                                                TextField(
+                                                                                  controller: messageController,
+                                                                                  decoration: InputDecoration(
+                                                                                    hintText: 'Ürün için açıklama girin...',
+                                                                                    border: OutlineInputBorder(
+                                                                                      borderRadius: BorderRadius.circular(12),
+                                                                                    ),
+                                                                                    filled: true,
+                                                                                    fillColor: Colors.grey[100],
+                                                                                  ),
+                                                                                  maxLines: 3,
+                                                                                ),
+                                                                                const SizedBox(height: 16),
+                                                                                ElevatedButton(
+                                                                                  style: ElevatedButton.styleFrom(
+                                                                                    backgroundColor: Colors.orange,
+                                                                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                                                                    shape: RoundedRectangleBorder(
+                                                                                      borderRadius: BorderRadius.circular(12),
+                                                                                    ),
+                                                                                  ),
+                                                                                  onPressed: () {
+                                                                                    Navigator.pop(context, messageController.text);
+                                                                                  },
+                                                                                  child: Text(
+                                                                                    'Kaydet',
+                                                                                    style: GoogleFonts.poppins(
+                                                                                      fontSize: 16,
+                                                                                      color: Colors.white,
+                                                                                    ),
+                                                                                  ),
+                                                                                ),
+                                                                                const SizedBox(height: 16),
+                                                                              ],
+                                                                            ),
+                                                                          ),
+                                                                        );
+                                                                      },
+                                                                    );
+
+                                                                    if (message !=
+                                                                        null) {
+                                                                      setState(
+                                                                          () {
+                                                                        final tableBill = ref
+                                                                            .read(tablesProvider)
+                                                                            .getTableBill(widget.tableId)
+                                                                            .toList();
+                                                                        final index =
+                                                                            tableBill.indexOf(item);
+                                                                        if (index !=
+                                                                            -1) {
+                                                                          tableBill[index] =
+                                                                              item.copyWith(customerMessage: message);
+                                                                          ref.read(tablesProvider.notifier).updateTableBill(
+                                                                              widget.tableId,
+                                                                              tableBill);
+                                                                        }
+                                                                      });
+                                                                    }
+                                                                  },
+                                                                ),
+                                                                IconButton(
+                                                                  icon: const Icon(
+                                                                      Icons
+                                                                          .delete_outline,
+                                                                      color: Colors
+                                                                          .red),
+                                                                  onPressed:
+                                                                      () {
+                                                                    setState(
+                                                                        () {
+                                                                      final tableBill = ref
+                                                                          .read(
+                                                                              tablesProvider)
+                                                                          .getTableBill(
+                                                                              widget.tableId)
+                                                                          .toList();
+                                                                      tableBill
+                                                                          .remove(
+                                                                              item);
+                                                                      ref.read(tablesProvider.notifier).updateTableBill(
+                                                                          widget
+                                                                              .tableId,
+                                                                          tableBill);
+                                                                    });
+                                                                  },
+                                                                ),
+                                                              ],
                                                             ),
-                                                          IconButton(
-                                                            icon: const Icon(Icons
-                                                                .remove_circle_outline),
-                                                            onPressed: () {},
-                                                          ),
                                                         ],
                                                       ),
                                                     ),
@@ -920,8 +1358,10 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                                               endIndent: 10,
                                             ),
                                             Padding(
-                                              padding: const EdgeInsets.symmetric(
-                                                  vertical: 8, horizontal: 12),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 8,
+                                                      horizontal: 12),
                                               child: Row(
                                                 mainAxisAlignment:
                                                     MainAxisAlignment
@@ -950,8 +1390,11 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                                                 padding:
                                                     const EdgeInsets.symmetric(
                                                         horizontal: 12),
-                                                child: verticalButtons(tableBill,
-                                                    context, ref, allItemsPaid)),
+                                                child: verticalButtons(
+                                                    tableBill,
+                                                    context,
+                                                    ref,
+                                                    allItemsPaid)),
                                             const SizedBox(
                                               height: 24,
                                             )
@@ -980,7 +1423,7 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
   Column verticalButtons(List<Menu> tableBill, BuildContext context,
       WidgetRef ref, bool allItemsPaid) {
     final userType = ref.watch(userTypeProvider).value ?? 'kafe';
-    
+
     if (userType == 'garson') {
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -992,60 +1435,72 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
             child: OutlinedButton(
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: Colors.transparent),
-                backgroundColor: tableBill.where((item) => item.status == 'yeni').isNotEmpty
-                    ? Colors.green
-                    : Colors.grey,
+                backgroundColor:
+                    tableBill.where((item) => item.status == 'yeni').isNotEmpty
+                        ? Colors.green
+                        : Colors.grey,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(28),
                 ),
               ),
-              onPressed: (tableBill.where((item) => item.status == 'yeni').isNotEmpty && !isSending)
+              onPressed: (tableBill
+                          .where((item) => item.status == 'yeni')
+                          .isNotEmpty &&
+                      !isSending)
                   ? () async {
                       setState(() {
                         isSending = true;
                       });
-                      
+
                       // Sadece yeni eklenen (status'u 'yeni' olan) ürünleri filtrele
-                      final newOrders = tableBill.where((item) => item.status == 'yeni').toList();
-                      
+                      final newOrders = tableBill
+                          .where((item) => item.status == 'yeni')
+                          .toList();
+
                       // Garson için sadece yeni ürünleri API'ye gönder
                       final orderService = ref.read(orderServiceProvider);
                       bool hasError = false;
                       int successCount = 0;
-                      
+
                       for (var item in newOrders) {
                         try {
                           // Önce siparişi API'ye gönder
-                          final success = await orderService.addOrder(item, widget.tableTitle);
-                          
+                          final success = await orderService.addOrder(
+                              item, widget.tableTitle);
+
                           if (success) {
                             // API'ye gönderim başarılı olduysa, yazıcıya gönder
                             try {
-                              print('�� Yazıcıya gönderiliyor...');
+                              print(' Yazıcıya gönderiliyor...');
                               print('🖨️ Sipariş Tipi: ${item.orderType}');
-                              
+
                               final orderData = {
                                 'title': item.title,
                                 'piece': item.piece,
                                 'tableTitle': widget.tableTitle,
                               };
 
-                              if (item.orderType?.toLowerCase() == 'bar' || item.orderType == null) {
-                                print('�� Bar siparişi yazıcıya gönderiliyor...');
+                              if (item.orderType?.toLowerCase() == 'bar' ||
+                                  item.orderType == null) {
+                                print(
+                                    '�� Bar siparişi yazıcıya gönderiliyor...');
                                 await BarPrinterService.printBarOrder(
                                   orderData,
                                   useWifi: true,
                                 );
                                 print('✅ Bar siparişi yazıcıya gönderildi');
-                              } else if (item.orderType?.toLowerCase() == 'mutfak') {
-                                print('🍳 Mutfak siparişi yazıcıya gönderiliyor...');
+                              } else if (item.orderType?.toLowerCase() ==
+                                  'mutfak') {
+                                print(
+                                    '🍳 Mutfak siparişi yazıcıya gönderiliyor...');
                                 await KitchenPrinterService.printKitchenOrder(
                                   orderData,
                                   useWifi: true,
                                 );
                                 print('✅ Mutfak siparişi yazıcıya gönderildi');
                               } else {
-                                print('⚠️ Bilinmeyen sipariş tipi: ${item.orderType}');
+                                print(
+                                    '⚠️ Bilinmeyen sipariş tipi: ${item.orderType}');
                               }
                               successCount++;
                             } catch (printerError) {
@@ -1074,18 +1529,24 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                         if (successCount == newOrders.length) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Yeni siparişler başarıyla gönderildi!'),
+                              content:
+                                  Text('Yeni siparişler başarıyla gönderildi!'),
                               backgroundColor: Colors.green,
                             ),
                           );
                           // Başarılı gönderimden sonra sadece yeni siparişleri temizle
-                          final existingOrders = tableBill.where((item) => item.status != 'yeni').toList();
-                          ref.read(tablesProvider.notifier).updateTableBill(widget.tableId, existingOrders);
+                          final existingOrders = tableBill
+                              .where((item) => item.status != 'yeni')
+                              .toList();
+                          ref
+                              .read(tablesProvider.notifier)
+                              .updateTableBill(widget.tableId, existingOrders);
                           Navigator.pop(context);
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('$successCount yeni sipariş gönderildi, ${newOrders.length - successCount} sipariş gönderilemedi!'),
+                              content: Text(
+                                  '$successCount yeni sipariş gönderildi, ${newOrders.length - successCount} sipariş gönderilemedi!'),
                               backgroundColor: Colors.orange,
                             ),
                           );
@@ -1130,9 +1591,8 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
           child: OutlinedButton(
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: Colors.transparent),
-              backgroundColor: tableBill.isNotEmpty
-                  ? Colors.green
-                  : Colors.grey,
+              backgroundColor:
+                  tableBill.isNotEmpty ? Colors.green : Colors.grey,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(28),
               ),
@@ -1191,9 +1651,10 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                     setState(() {
                       isClosing = true;
                     });
-                    
+
                     final tablesNotifier = ref.read(tablesProvider.notifier);
-                    final isClosed = await tablesNotifier.hesabiKapat(widget.tableId);
+                    final isClosed =
+                        await tablesNotifier.hesabiKapat(widget.tableId);
 
                     if (isClosed) {
                       if (context.mounted) {
@@ -1209,13 +1670,14 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Hesap kapatılırken bir hata oluştu!'),
+                            content:
+                                Text('Hesap kapatılırken bir hata oluştu!'),
                             backgroundColor: Colors.red,
                           ),
                         );
                       }
                     }
-                    
+
                     setState(() {
                       isClosing = false;
                     });
@@ -1225,22 +1687,22 @@ class _BillMobileViewState extends ConsumerState<BillMobileView>
               padding: const EdgeInsets.symmetric(
                 vertical: 12,
               ),
-              child: isClosing 
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
+              child: isClosing
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Text(
+                      'HESABI KAPAT',
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: Colors.white,
+                      ),
                     ),
-                  )
-                : const Text(
-                    'HESABI KAPAT',
-                    style: TextStyle(
-                      fontSize: 20,
-                      color: Colors.white,
-                    ),
-                  ),
             ),
           ),
         ),
