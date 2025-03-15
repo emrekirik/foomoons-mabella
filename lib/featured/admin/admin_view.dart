@@ -192,11 +192,45 @@ class _AdminViewState extends ConsumerState<AdminView> {
                                                     children: [
                                                       Expanded(
                                                         flex: 2,
-                                                        child:
-                                                            _buildOrderDetailTile(
-                                                          '',
-                                                          item.title ?? '',
-                                                          Icons.restaurant_menu,
+                                                        child: Row(
+                                                          children: [
+                                                            Expanded(
+                                                              child: _buildOrderDetailTile(
+                                                                '',
+                                                                item.title ?? '',
+                                                                Icons.restaurant_menu,
+                                                              ),
+                                                            ),
+                                                            if (item.sender != null && item.sender!.isNotEmpty) ...[
+                                                              Container(
+                                                                margin: const EdgeInsets.only(left: 8),
+                                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                                                decoration: BoxDecoration(
+                                                                  color: Colors.blue[50],
+                                                                  borderRadius: BorderRadius.circular(12),
+                                                                ),
+                                                                child: Row(
+                                                                  mainAxisSize: MainAxisSize.min,
+                                                                  children: [
+                                                                    Icon(
+                                                                      Icons.person_outline,
+                                                                      size: 14,
+                                                                      color: Colors.blue[700],
+                                                                    ),
+                                                                    const SizedBox(width: 4),
+                                                                    Text(
+                                                                      item.sender!,
+                                                                      style: TextStyle(
+                                                                        fontSize: 12,
+                                                                        color: Colors.blue[700],
+                                                                        fontWeight: FontWeight.w500,
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ],
                                                         ),
                                                       ),
                                                       Container(
@@ -334,13 +368,10 @@ class _AdminViewState extends ConsumerState<AdminView> {
                                                       ),
                                                       const SizedBox(width: 8),
                                                       Expanded(
-                                                        child:
-                                                            _buildOrderDetailTile(
+                                                        child: _buildOrderDetailTile(
                                                           '',
-                                                          item.tableTitle ??
-                                                              'Bilinmiyor',
-                                                          Icons
-                                                              .table_restaurant,
+                                                          item.tableTitle ?? 'Bilinmiyor',
+                                                          Icons.table_restaurant,
                                                         ),
                                                       ),
                                                       Container(
@@ -433,11 +464,45 @@ class _AdminViewState extends ConsumerState<AdminView> {
                                                     children: [
                                                       Expanded(
                                                         flex: 2,
-                                                        child:
-                                                            _buildOrderDetailTile(
-                                                          '',
-                                                          item.title ?? '',
-                                                          Icons.restaurant_menu,
+                                                        child: Row(
+                                                          children: [
+                                                            Expanded(
+                                                              child: _buildOrderDetailTile(
+                                                                '',
+                                                                item.title ?? '',
+                                                                Icons.restaurant_menu,
+                                                              ),
+                                                            ),
+                                                            if (item.sender != null && item.sender!.isNotEmpty) ...[
+                                                              Container(
+                                                                margin: const EdgeInsets.only(left: 8),
+                                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                                                decoration: BoxDecoration(
+                                                                  color: Colors.blue[50],
+                                                                  borderRadius: BorderRadius.circular(12),
+                                                                ),
+                                                                child: Row(
+                                                                  mainAxisSize: MainAxisSize.min,
+                                                                  children: [
+                                                                    Icon(
+                                                                      Icons.person_outline,
+                                                                      size: 14,
+                                                                      color: Colors.blue[700],
+                                                                    ),
+                                                                    const SizedBox(width: 4),
+                                                                    Text(
+                                                                      item.sender!,
+                                                                      style: TextStyle(
+                                                                        fontSize: 12,
+                                                                        color: Colors.blue[700],
+                                                                        fontWeight: FontWeight.w500,
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ],
                                                         ),
                                                       ),
                                                       Container(
@@ -575,13 +640,10 @@ class _AdminViewState extends ConsumerState<AdminView> {
                                                       ),
                                                       const SizedBox(width: 8),
                                                       Expanded(
-                                                        child:
-                                                            _buildOrderDetailTile(
+                                                        child: _buildOrderDetailTile(
                                                           '',
-                                                          item.tableTitle ??
-                                                              'Bilinmiyor',
-                                                          Icons
-                                                              .table_restaurant,
+                                                          item.tableTitle ?? 'Bilinmiyor',
+                                                          Icons.table_restaurant,
                                                         ),
                                                       ),
                                                       Container(
@@ -735,10 +797,45 @@ class _AdminViewState extends ConsumerState<AdminView> {
                                   children: [
                                     Expanded(
                                       flex: 2,
-                                      child: _buildOrderDetailTile(
-                                        '',
-                                        item.title ?? '',
-                                        Icons.restaurant_menu,
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: _buildOrderDetailTile(
+                                              '',
+                                              item.title ?? '',
+                                              Icons.restaurant_menu,
+                                            ),
+                                          ),
+                                          if (item.sender != null && item.sender!.isNotEmpty) ...[
+                                            Container(
+                                              margin: const EdgeInsets.only(left: 8),
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: Colors.blue[50],
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(
+                                                    Icons.person_outline,
+                                                    size: 14,
+                                                    color: Colors.blue[700],
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    item.sender!,
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      color: Colors.blue[700],
+                                                      fontWeight: FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ],
                                       ),
                                     ),
                                     Container(

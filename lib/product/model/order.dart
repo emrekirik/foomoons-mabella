@@ -18,6 +18,7 @@ class Order with EquatableMixin, IdModel {
   final Timestamp? orderDate; // Yeni alan eklendi
   final String? customerMessage;
   final String? orderType;
+  final String? sender;
   @override
   final int? id;
 
@@ -35,6 +36,7 @@ class Order with EquatableMixin, IdModel {
     this.businessId,
     this.customerMessage,
     this.orderType,
+    this.sender,
   });
 
   @override
@@ -52,6 +54,7 @@ class Order with EquatableMixin, IdModel {
         businessId,
         customerMessage,
         orderType,
+        sender,
       ];
 
   @override
@@ -71,7 +74,8 @@ class Order with EquatableMixin, IdModel {
         other.orderDate == orderDate &&
         other.businessId == businessId &&
         other.customerMessage == customerMessage &&
-        other.orderType == orderType;
+        other.orderType == orderType &&
+        other.sender == sender;
   }
 
   @override
@@ -88,7 +92,8 @@ class Order with EquatableMixin, IdModel {
         orderDate.hashCode ^
         businessId.hashCode ^
         customerMessage.hashCode ^
-        orderType.hashCode;
+        orderType.hashCode ^
+        sender.hashCode;
   }
 
   Order copyWith({
@@ -106,6 +111,7 @@ class Order with EquatableMixin, IdModel {
     int? businessId,
     String? customerMessage,
     String? orderType,
+    String? sender,
   }) {
     return Order(
       title: title ?? this.title,
@@ -121,6 +127,7 @@ class Order with EquatableMixin, IdModel {
       businessId: businessId ?? this.businessId,
       customerMessage: customerMessage ?? this.customerMessage,
       orderType: orderType ?? this.orderType,
+      sender: sender ?? this.sender,
     );
   }
 
@@ -139,6 +146,7 @@ class Order with EquatableMixin, IdModel {
       'businessId': businessId,
       'customerMessage': customerMessage,
       'orderType': orderType,
+      'sender': sender,
     };
   }
 
@@ -181,6 +189,7 @@ class Order with EquatableMixin, IdModel {
       businessId: json['businessId'] != null ? (json['businessId'] as num).toInt() : null,
       customerMessage: json['customerMessage'] as String?,
       orderType: json['orderType'] as String?,
+      sender: json['sender'] as String?,
     );
   }
 }
