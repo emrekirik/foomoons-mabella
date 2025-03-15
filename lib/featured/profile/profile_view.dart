@@ -156,6 +156,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                     profileState: profileState,
                                     profileNotifier: profileNotifier,
                                   ),
+                            const SizedBox(height: 30),
+                            _SettingsSection(
+                              deviceHeight: deviceHeight,
+                            ),
+                            const SizedBox(height: 50),
                           ],
                         ),
                         const SizedBox(height: 50),
@@ -1137,6 +1142,91 @@ class _CustomTitle extends StatelessWidget {
         fontWeight: FontWeight.w600,
         color: Colors.black,
         letterSpacing: -0.5,
+      ),
+    );
+  }
+}
+
+class _SettingsSection extends StatefulWidget {
+  const _SettingsSection({
+    required this.deviceHeight,
+  });
+
+  final double deviceHeight;
+
+  @override
+  State<_SettingsSection> createState() => _SettingsSectionState();
+}
+
+class _SettingsSectionState extends State<_SettingsSection> {
+  bool isOnlineOrdersEnabled = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _CustomTitle(
+            deviceHeight: widget.deviceHeight,
+            title: 'Ayarlar',
+          ),
+          SizedBox(height: widget.deviceHeight * 0.02),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey[300]!),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Online Siparişler',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      isOnlineOrdersEnabled ? 'Açık' : 'Kapalı',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: isOnlineOrdersEnabled ? Colors.green : Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+                Switch(
+                  value: isOnlineOrdersEnabled,
+                  onChanged: (value) {
+                    setState(() {
+                      isOnlineOrdersEnabled = value;
+                    });
+                  },
+                  activeColor: Colors.orange[400],
+                  activeTrackColor: Colors.orange[200],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

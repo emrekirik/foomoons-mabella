@@ -36,9 +36,35 @@ class _BillViewState extends ConsumerState<BillView>
   late bool allItemsPaid;
   late double remainingAmount;
   Map<String, dynamic>? userDetails;
+  // Seçilen öğeleri tutacak set
+  final Set<int> selectedItems = {};
+  bool isMultiSelectMode = false;
 
   final Map<String, AnimationController> _animationControllers = {};
   bool _isPrinting = false;
+
+  // Öğe seçim durumunu değiştiren metod
+  void toggleItemSelection(int itemId) {
+    setState(() {
+      if (selectedItems.contains(itemId)) {
+        selectedItems.remove(itemId);
+        if (selectedItems.isEmpty) {
+          isMultiSelectMode = false;
+        }
+      } else {
+        selectedItems.add(itemId);
+        isMultiSelectMode = true;
+      }
+    });
+  }
+
+  // Tüm seçimleri temizleyen metod
+  void clearSelection() {
+    setState(() {
+      selectedItems.clear();
+      isMultiSelectMode = false;
+    });
+  }
 
   @override
   void initState() {
@@ -489,13 +515,34 @@ class _BillViewState extends ConsumerState<BillView>
                                       children: [
                                         Padding(
                                           padding: const EdgeInsets.all(10.0),
-                                          child: Text(
-                                            widget.isSelfService
-                                                ? 'Hesap'
-                                                : widget.tableTitle,
-                                            style: const TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w600),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                widget.isSelfService
+                                                    ? 'Hesap'
+                                                    : widget.tableTitle,
+                                                style: const TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w600),
+                                              ),
+                                              IconButton(
+                                                onPressed: () {
+                                                  setState(() {
+                                                    if (isMultiSelectMode) {
+                                                      clearSelection();
+                                                    } else {
+                                                      isMultiSelectMode = true;
+                                                    }
+                                                  });
+                                                },
+                                                icon: Icon(
+                                                  isMultiSelectMode ? Icons.close : Icons.checklist_rounded,
+                                                  color: isMultiSelectMode ? Colors.red : Colors.grey[700],
+                                                ),
+                                                tooltip: isMultiSelectMode ? 'Seçim Modunu Kapat' : 'Çoklu Seçim',
+                                              ),
+                                            ],
                                           ),
                                         ),
                                         Expanded(
@@ -544,6 +591,15 @@ class _BillViewState extends ConsumerState<BillView>
                                                         const EdgeInsets
                                                             .symmetric(
                                                             horizontal: 12),
+                                                    leading: isMultiSelectMode && item.status != 'ödendi' ? Checkbox(
+                                                      value: selectedItems.contains(item.id),
+                                                      onChanged: (bool? value) {
+                                                        if (item.id != null) {
+                                                          toggleItemSelection(item.id!);
+                                                        }
+                                                      },
+                                                      activeColor: Colors.orange,
+                                                    ) : null,
                                                     title: Text(
                                                       item.title ?? '',
                                                       style: const TextStyle(
@@ -599,6 +655,7 @@ class _BillViewState extends ConsumerState<BillView>
                                                                     color: Colors
                                                                         .green),
                                                               ),
+                                                        if (!isMultiSelectMode && item.status != 'ödendi')
                                                         IconButton(
                                                           icon: const Icon(
                                                             Icons
@@ -795,6 +852,158 @@ class _BillViewState extends ConsumerState<BillView>
                                           indent: 10,
                                           endIndent: 10,
                                         ),
+                                        if (isMultiSelectMode)
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                            child: Row(
+                                              children: [
+                                                Text(
+                                                  '${selectedItems.length} öğe seçildi',
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                                const Spacer(),
+                                                TextButton(
+                                                  onPressed: clearSelection,
+                                                  child: const Text('İptal', style: TextStyle(color: Colors.black),),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                ElevatedButton.icon(
+                                                  style: ElevatedButton.styleFrom(
+                                                    backgroundColor: Colors.red,
+                                                    foregroundColor: Colors.white,
+                                                  ),
+                                                  onPressed: () async {
+                                                    final shouldDelete = await showDialog<bool>(
+                                                      context: context,
+                                                      builder: (context) => Dialog(
+                                                        shape: RoundedRectangleBorder(
+                                                          borderRadius: BorderRadius.circular(20),
+                                                        ),
+                                                        child: Container(
+                                                          width: 400,
+                                                          padding: const EdgeInsets.all(32),
+                                                          decoration: BoxDecoration(
+                                                            color: Colors.white,
+                                                            borderRadius: BorderRadius.circular(20),
+                                                          ),
+                                                          child: Column(
+                                                            mainAxisSize: MainAxisSize.min,
+                                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                                            children: [
+                                                              Row(
+                                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                children: [
+                                                                  Text(
+                                                                    'Toplu Silme',
+                                                                    style: GoogleFonts.poppins(
+                                                                      fontSize: 24,
+                                                                      fontWeight: FontWeight.w600,
+                                                                      color: Colors.black,
+                                                                      letterSpacing: -0.5,
+                                                                    ),
+                                                                  ),
+                                                                  IconButton(
+                                                                    onPressed: () => Navigator.pop(context, false),
+                                                                    icon: Icon(
+                                                                      Icons.close,
+                                                                      color: Colors.grey[400],
+                                                                      size: 24,
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                              const SizedBox(height: 24),
+                                                              Text(
+                                                                'Seçili ${selectedItems.length} adisyonu silmek istediğinize emin misiniz?',
+                                                                style: GoogleFonts.poppins(
+                                                                  fontSize: 16,
+                                                                  color: Colors.grey[700],
+                                                                ),
+                                                              ),
+                                                              const SizedBox(height: 32),
+                                                              Row(
+                                                                mainAxisAlignment: MainAxisAlignment.end,
+                                                                children: [
+                                                                  TextButton(
+                                                                    onPressed: () => Navigator.pop(context, false),
+                                                                    child: Text(
+                                                                      'İptal',
+                                                                      style: GoogleFonts.poppins(
+                                                                        fontSize: 16,
+                                                                        color: Colors.grey[600],
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                  const SizedBox(width: 16),
+                                                                  ElevatedButton(
+                                                                    style: ElevatedButton.styleFrom(
+                                                                      backgroundColor: Colors.red,
+                                                                      padding: const EdgeInsets.symmetric(
+                                                                        horizontal: 24,
+                                                                        vertical: 12,
+                                                                      ),
+                                                                      shape: RoundedRectangleBorder(
+                                                                        borderRadius: BorderRadius.circular(12),
+                                                                      ),
+                                                                    ),
+                                                                    onPressed: () => Navigator.pop(context, true),
+                                                                    child: Text(
+                                                                      'Sil',
+                                                                      style: GoogleFonts.poppins(
+                                                                        fontSize: 16,
+                                                                        color: Colors.white,
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    );
+
+                                                    if (shouldDelete == true && context.mounted) {
+                                                      bool allSuccess = true;
+                                                      for (int billItemId in selectedItems) {
+                                                        final success = await PaymentService.deleteBillItem(billItemId);
+                                                        if (!success) {
+                                                          allSuccess = false;
+                                                          break;
+                                                        }
+                                                      }
+
+                                                      if (context.mounted) {
+                                                        if (allSuccess) {
+                                                          ScaffoldMessenger.of(context).showSnackBar(
+                                                            const SnackBar(
+                                                              content: Text('Seçili adisyonlar başarıyla silindi'),
+                                                              backgroundColor: Colors.green,
+                                                            ),
+                                                          );
+                                                          clearSelection();
+                                                          // Sayfayı yenile
+                                                          ref.read(tablesProvider.notifier).fetchTableBillApi(widget.tableId);
+                                                        } else {
+                                                          ScaffoldMessenger.of(context).showSnackBar(
+                                                            const SnackBar(
+                                                              content: Text('Adisyonlar silinirken bir hata oluştu'),
+                                                              backgroundColor: Colors.red,
+                                                            ),
+                                                          );
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  icon: const Icon(Icons.delete_outline, color: Colors.white,),
+                                                  label: const Text('Seçilenleri Sil'),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
                                         Padding(
                                           padding: const EdgeInsets.symmetric(
                                               vertical: 6, horizontal: 10),
