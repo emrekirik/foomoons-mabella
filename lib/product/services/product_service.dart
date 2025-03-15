@@ -45,7 +45,8 @@ class ProductService {
         'stock': 0, // backend'de null olamaz verilmiş
         'title': newProduct.title,
         'businessId': businessId,
-        'orderType': newProduct.orderType
+        'orderType': newProduct.orderType,
+        'isVisibleInMenu': newProduct.isVisibleInMenu ?? true
       });
 
       final response = await http.post(url,
@@ -75,7 +76,8 @@ class ProductService {
         'stock': product.stock ?? 0,
         'title': product.title,
         'businessId': businessId,
-        'orderType': product.orderType
+        'orderType': product.orderType,
+        'isVisibleInMenu': product.isVisibleInMenu ?? true
       });
 
       final response = await http.post(

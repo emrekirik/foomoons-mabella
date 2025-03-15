@@ -20,6 +20,7 @@ class Menu with EquatableMixin, IdModel {
   final int? billId;  // Added billId field
   final String? orderType; // Added orderType field
   final String? customerMessage; // Added customerMessage field
+  final bool? isVisibleInMenu;
 
   const Menu(
       {this.title,
@@ -36,7 +37,8 @@ class Menu with EquatableMixin, IdModel {
       this.tableId,
       this.billId,
       this.orderType,
-      this.customerMessage}); // Added customerMessage to constructor
+      this.customerMessage,
+      this.isVisibleInMenu}); // Added isVisibleInMenu to constructor
 
   @override
   List<Object?> get props => [
@@ -54,7 +56,8 @@ class Menu with EquatableMixin, IdModel {
         tableId,
         billId,
         orderType,
-        customerMessage
+        customerMessage,
+        isVisibleInMenu
       ];
 
   @override
@@ -75,7 +78,8 @@ class Menu with EquatableMixin, IdModel {
         other.tableId == tableId &&
         other.billId == billId &&
         other.orderType == orderType &&
-        other.customerMessage == customerMessage;
+        other.customerMessage == customerMessage &&
+        other.isVisibleInMenu == isVisibleInMenu;
   }
 
   @override
@@ -93,7 +97,8 @@ class Menu with EquatableMixin, IdModel {
         tableId.hashCode ^
         billId.hashCode ^
         orderType.hashCode ^
-        customerMessage.hashCode;
+        customerMessage.hashCode ^
+        isVisibleInMenu.hashCode;
   }
 
   /// Copy this instance with new values, while preserving existing ones if not provided
@@ -113,6 +118,7 @@ class Menu with EquatableMixin, IdModel {
     int? billId,
     String? orderType,
     String? customerMessage,
+    bool? isVisibleInMenu,
   }) {
     return Menu(
         title: title ?? this.title,
@@ -129,7 +135,8 @@ class Menu with EquatableMixin, IdModel {
         tableId: tableId ?? this.tableId,
         billId: billId ?? this.billId,
         orderType: orderType ?? this.orderType,
-        customerMessage: customerMessage ?? this.customerMessage);
+        customerMessage: customerMessage ?? this.customerMessage,
+        isVisibleInMenu: isVisibleInMenu ?? this.isVisibleInMenu);
   }
 
   /// Convert this Menu instance to a JSON map
@@ -149,7 +156,8 @@ class Menu with EquatableMixin, IdModel {
       'tableId': tableId,
       'billId': billId,
       'orderType': orderType,
-      'customerMessage': customerMessage
+      'customerMessage': customerMessage,
+      'isVisibleInMenu': isVisibleInMenu
     };
   }
 
@@ -172,7 +180,8 @@ class Menu with EquatableMixin, IdModel {
         tableId: _parseToInt(json['tableId']),
         billId: _parseToInt(json['billId']),
         orderType: json['orderType'] as String?,
-        customerMessage: json['customerMessage'] as String?);
+        customerMessage: json['customerMessage'] as String?,
+        isVisibleInMenu: json['isVisibleInMenu'] as bool?);
   }
 
   /// Helper method to safely parse price values to int
@@ -202,6 +211,7 @@ class Menu with EquatableMixin, IdModel {
         'tableId: $tableId, '
         'billId: $billId, '
         'orderType: $orderType, '
-        'customerMessage: $customerMessage)';
+        'customerMessage: $customerMessage, '
+        'isVisibleInMenu: $isVisibleInMenu)';
   }
 }

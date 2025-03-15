@@ -671,6 +671,7 @@ class _MenuViewState extends ConsumerState<MenuView> {
     TextEditingController priceController = TextEditingController();
     TextEditingController categoryController = TextEditingController();
     String? selectedOrderType;
+    bool isVisible = true;
 
     return showDialog(
       context: context,
@@ -681,300 +682,335 @@ class _MenuViewState extends ConsumerState<MenuView> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Container(
-                width: 600,
-                padding: const EdgeInsets.all(32),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.8,
+                  maxWidth: 500,
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Container(
+                  padding: const EdgeInsets.all(32),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Ürün Ekle',
+                              style: GoogleFonts.poppins(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: () => Navigator.pop(context),
+                              icon: Icon(
+                                Icons.close,
+                                color: Colors.grey[400],
+                                size: 20,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
                         Text(
-                          'Ürün Ekle',
+                          'Ürün İsmi',
                           style: GoogleFonts.poppins(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: () => Navigator.pop(context),
-                          icon: Icon(
-                            Icons.close,
-                            color: Colors.grey[400],
-                            size: 20,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Ürün İsmi',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.grey[700],
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    TextField(
-                      controller: titleController,
-                      decoration: InputDecoration(
-                        hintText: 'Ürün ismini girin',
-                        hintStyle: GoogleFonts.poppins(
-                          color: Colors.grey[400],
-                          fontSize: 14,
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey[50],
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(
-                            color: Colors.grey[200]!,
-                          ),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(
-                            color: Colors.grey[200]!,
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(
-                            color: Colors.black,
-                          ),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 12,
-                        ),
-                      ),
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Ürün Fiyatı',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.grey[700],
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    TextField(
-                      controller: priceController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        hintText: 'Ürün fiyatını girin',
-                        hintStyle: GoogleFonts.poppins(
-                          color: Colors.grey[400],
-                          fontSize: 14,
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey[50],
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(
-                            color: Colors.grey[200]!,
-                          ),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(
-                            color: Colors.grey[200]!,
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(
-                            color: Colors.black,
-                          ),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 12,
-                        ),
-                      ),
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Kategori',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.grey[700],
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[50],
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: Colors.grey[200]!,
-                        ),
-                      ),
-                      child: DropdownButtonFormField<String>(
-                        decoration: const InputDecoration(
-                          border: InputBorder.none,
-                        ),
-                        icon: Icon(Icons.arrow_drop_down, color: Colors.grey[600], size: 20),
-                        isExpanded: true,
-                        dropdownColor: Colors.white,
-                        menuMaxHeight: 200,
-                        hint: Text(
-                          'Kategori seçin',
-                          style: GoogleFonts.poppins(
-                            color: Colors.grey[400],
                             fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey[700],
                           ),
                         ),
-                        items: categories.map((category) {
-                          return DropdownMenuItem<String>(
-                            value: category.title,
-                            child: Text(
-                              category.title ?? '',
-                              style: GoogleFonts.poppins(
-                                fontSize: 14,
-                                color: Colors.black87,
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          categoryController.text = value ?? '';
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Sipariş Tipi',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.grey[700],
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[50],
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: Colors.grey[200]!,
-                        ),
-                      ),
-                      child: DropdownButtonFormField<String>(
-                        decoration: const InputDecoration(
-                          border: InputBorder.none,
-                        ),
-                        icon: Icon(Icons.arrow_drop_down, color: Colors.grey[600], size: 20),
-                        isExpanded: true,
-                        dropdownColor: Colors.white,
-                        menuMaxHeight: 200,
-                        hint: Text(
-                          'Sipariş tipi seçin',
-                          style: GoogleFonts.poppins(
-                            color: Colors.grey[400],
-                            fontSize: 14,
-                          ),
-                        ),
-                        items: ['Mutfak', 'Bar'].map((type) {
-                          return DropdownMenuItem<String>(
-                            value: type,
-                            child: Text(
-                              type,
-                              style: GoogleFonts.poppins(
-                                fontSize: 14,
-                                color: Colors.black87,
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            selectedOrderType = value;
-                          });
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text(
-                            'İptal',
-                            style: GoogleFonts.poppins(
+                        const SizedBox(height: 6),
+                        TextField(
+                          controller: titleController,
+                          decoration: InputDecoration(
+                            hintText: 'Ürün ismini girin',
+                            hintStyle: GoogleFonts.poppins(
+                              color: Colors.grey[400],
                               fontSize: 14,
-                              color: Colors.grey[600],
                             ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            shape: RoundedRectangleBorder(
+                            filled: true,
+                            fillColor: Colors.grey[50],
+                            border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                color: Colors.grey[200]!,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                color: Colors.grey[200]!,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: const BorderSide(
+                                color: Colors.black,
+                              ),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 12,
                             ),
                           ),
-                          onPressed: isUploading
-                              ? null
-                              : () async {
-                                  if (titleController.text.isEmpty ||
-                                      priceController.text.isEmpty ||
-                                      categoryController.text.isEmpty) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Lütfen tüm alanları doldurun'),
-                                      ),
-                                    );
-                                    return;
-                                  }
-
-                                  final newProduct = Menu(
-                                    title: titleController.text,
-                                    price: double.tryParse(priceController.text),
-                                    image: ref.watch(menuProvider).photoURL,
-                                    category: categoryController.text,
-                                    orderType: selectedOrderType,
-                                  );
-
-                                  await menuNotifier.addProduct(newProduct);
-                                  Navigator.of(context).pop();
-                                },
-                          child: Text(
-                            'Kaydet',
-                            style: GoogleFonts.poppins(
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Ürün Fiyatı',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        TextField(
+                          controller: priceController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            hintText: 'Ürün fiyatını girin',
+                            hintStyle: GoogleFonts.poppins(
+                              color: Colors.grey[400],
                               fontSize: 14,
-                              color: Colors.white,
+                            ),
+                            filled: true,
+                            fillColor: Colors.grey[50],
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                color: Colors.grey[200]!,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                color: Colors.grey[200]!,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: const BorderSide(
+                                color: Colors.black,
+                              ),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 12,
                             ),
                           ),
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Kategori',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[50],
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: Colors.grey[200]!,
+                            ),
+                          ),
+                          child: DropdownButtonFormField<String>(
+                            decoration: const InputDecoration(
+                              border: InputBorder.none,
+                            ),
+                            icon: Icon(Icons.arrow_drop_down, color: Colors.grey[600], size: 20),
+                            isExpanded: true,
+                            dropdownColor: Colors.white,
+                            menuMaxHeight: 200,
+                            hint: Text(
+                              'Kategori seçin',
+                              style: GoogleFonts.poppins(
+                                color: Colors.grey[400],
+                                fontSize: 14,
+                              ),
+                            ),
+                            items: categories.map((category) {
+                              return DropdownMenuItem<String>(
+                                value: category.title,
+                                child: Text(
+                                  category.title ?? '',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              categoryController.text = value ?? '';
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Sipariş Tipi',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[50],
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: Colors.grey[200]!,
+                            ),
+                          ),
+                          child: DropdownButtonFormField<String>(
+                            decoration: const InputDecoration(
+                              border: InputBorder.none,
+                            ),
+                            icon: Icon(Icons.arrow_drop_down, color: Colors.grey[600], size: 20),
+                            isExpanded: true,
+                            dropdownColor: Colors.white,
+                            menuMaxHeight: 200,
+                            hint: Text(
+                              'Sipariş tipi seçin',
+                              style: GoogleFonts.poppins(
+                                color: Colors.grey[400],
+                                fontSize: 14,
+                              ),
+                            ),
+                            items: ['Mutfak', 'Bar'].map((type) {
+                              return DropdownMenuItem<String>(
+                                value: type,
+                                child: Text(
+                                  type,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                selectedOrderType = value;
+                              });
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Text(
+                              'Menüde Görünür',
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                            const Spacer(),
+                            StatefulBuilder(
+                              builder: (context, setState) {
+                                return Switch(
+                                  value: isVisible,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      isVisible = value;
+                                    });
+                                  },
+                                  activeColor: Colors.orange,
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: Text(
+                                'İptal',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.orange,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              onPressed: isUploading
+                                  ? null
+                                  : () async {
+                                      if (titleController.text.isEmpty ||
+                                          priceController.text.isEmpty ||
+                                          categoryController.text.isEmpty) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('Lütfen tüm alanları doldurun'),
+                                          ),
+                                        );
+                                        return;
+                                      }
+
+                                      final newProduct = Menu(
+                                        title: titleController.text,
+                                        price: double.tryParse(priceController.text),
+                                        image: ref.watch(menuProvider).photoURL,
+                                        category: categoryController.text,
+                                        orderType: selectedOrderType,
+                                        isVisibleInMenu: isVisible,
+                                      );
+
+                                      await menuNotifier.addProduct(newProduct);
+                                      Navigator.of(context).pop();
+                                    },
+                              child: Text(
+                                'Kaydet',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             );
@@ -1057,132 +1093,84 @@ class MenuItem extends ConsumerWidget {
                                 final categoryController = TextEditingController(text: item.category);
                                 final stockController = TextEditingController(text: item.stock?.toString() ?? '0');
                                 String? selectedOrderType = item.orderType;
+                                bool isVisible = item.isVisibleInMenu ?? true;
 
                                 return Dialog(
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(20),
                                   ),
-                                  child: Container(
-                                    width: 500,
-                                    padding: const EdgeInsets.all(32),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(20),
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      maxHeight: MediaQuery.of(context).size.height * 0.8,
+                                      maxWidth: 500,
                                     ),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(32),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: SingleChildScrollView(
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            Text(
-                                              'Ürün Düzenle',
-                                              style: GoogleFonts.poppins(
-                                                fontSize: 24,
-                                                fontWeight: FontWeight.w600,
-                                                color: Colors.black,
-                                                letterSpacing: -0.5,
-                                              ),
-                                            ),
-                                            IconButton(
-                                              onPressed: () => Navigator.pop(context),
-                                              icon: Icon(
-                                                Icons.close,
-                                                color: Colors.grey[400],
-                                                size: 20,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 24),
-                                        _buildTextField(
-                                          controller: titleController,
-                                          label: 'Ürün Adı',
-                                          hint: 'Ürün adını girin',
-                                        ),
-                                        const SizedBox(height: 16),
-                                        _buildTextField(
-                                          controller: priceController,
-                                          label: 'Fiyat',
-                                          hint: 'Ürün fiyatını girin',
-                                          keyboardType: TextInputType.number,
-                                        ),
-                                        const SizedBox(height: 16),
-                                        Text(
-                                          'Kategori',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.grey[700],
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey[50],
-                                            borderRadius: BorderRadius.circular(12),
-                                            border: Border.all(
-                                              color: Colors.grey[200]!,
-                                            ),
-                                          ),
-                                          child: DropdownButtonFormField<String>(
-                                            value: item.category,
-                                            decoration: const InputDecoration(
-                                              border: InputBorder.none,
-                                            ),
-                                            icon: Icon(Icons.arrow_drop_down, color: Colors.grey[600], size: 20),
-                                            isExpanded: true,
-                                            dropdownColor: Colors.white,
-                                            menuMaxHeight: 200,
-                                            hint: Text(
-                                              'Kategori seçin',
-                                              style: GoogleFonts.poppins(
-                                                color: Colors.grey[400],
-                                                fontSize: 14,
-                                              ),
-                                            ),
-                                            items: ref.watch(menuProvider).categories?.map((category) {
-                                              return DropdownMenuItem<String>(
-                                                value: category.title,
-                                                child: Text(
-                                                  category.title ?? '',
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Text(
+                                                  'Ürün Düzenle',
                                                   style: GoogleFonts.poppins(
-                                                    fontSize: 14,
-                                                    color: Colors.black87,
+                                                    fontSize: 24,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Colors.black,
+                                                    letterSpacing: -0.5,
                                                   ),
                                                 ),
-                                              );
-                                            }).toList(),
-                                            onChanged: (value) {
-                                              categoryController.text = value ?? '';
-                                            },
-                                          ),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        Text(
-                                          'Sipariş Tipi',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.grey[700],
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey[50],
-                                            borderRadius: BorderRadius.circular(12),
-                                            border: Border.all(
-                                              color: Colors.grey[200]!,
+                                                IconButton(
+                                                  onPressed: () => Navigator.pop(context),
+                                                  icon: Icon(
+                                                    Icons.close,
+                                                    color: Colors.grey[400],
+                                                    size: 20,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
-                                          ),
-                                          child: StatefulBuilder(
-                                            builder: (context, setState) {
-                                              return DropdownButtonFormField<String>(
-                                                value: selectedOrderType,
+                                            const SizedBox(height: 24),
+                                            _buildTextField(
+                                              controller: titleController,
+                                              label: 'Ürün Adı',
+                                              hint: 'Ürün adını girin',
+                                            ),
+                                            const SizedBox(height: 16),
+                                            _buildTextField(
+                                              controller: priceController,
+                                              label: 'Fiyat',
+                                              hint: 'Ürün fiyatını girin',
+                                              keyboardType: TextInputType.number,
+                                            ),
+                                            const SizedBox(height: 16),
+                                            Text(
+                                              'Kategori',
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w500,
+                                                color: Colors.grey[700],
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey[50],
+                                                borderRadius: BorderRadius.circular(12),
+                                                border: Border.all(
+                                                  color: Colors.grey[200]!,
+                                                ),
+                                              ),
+                                              child: DropdownButtonFormField<String>(
+                                                value: item.category,
                                                 decoration: const InputDecoration(
                                                   border: InputBorder.none,
                                                 ),
@@ -1191,17 +1179,17 @@ class MenuItem extends ConsumerWidget {
                                                 dropdownColor: Colors.white,
                                                 menuMaxHeight: 200,
                                                 hint: Text(
-                                                  'Sipariş tipi seçin',
+                                                  'Kategori seçin',
                                                   style: GoogleFonts.poppins(
                                                     color: Colors.grey[400],
                                                     fontSize: 14,
                                                   ),
                                                 ),
-                                                items: ['Mutfak', 'Bar'].map((type) {
+                                                items: ref.watch(menuProvider).categories?.map((category) {
                                                   return DropdownMenuItem<String>(
-                                                    value: type,
+                                                    value: category.title,
                                                     child: Text(
-                                                      type,
+                                                      category.title ?? '',
                                                       style: GoogleFonts.poppins(
                                                         fontSize: 14,
                                                         color: Colors.black87,
@@ -1210,147 +1198,230 @@ class MenuItem extends ConsumerWidget {
                                                   );
                                                 }).toList(),
                                                 onChanged: (value) {
-                                                  setState(() {
-                                                    selectedOrderType = value;
-                                                  });
+                                                  categoryController.text = value ?? '';
                                                 },
-                                              );
-                                            }
-                                          ),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        _buildTextField(
-                                          controller: stockController,
-                                          label: 'Stok',
-                                          hint: 'Ürün stok miktarını girin',
-                                          keyboardType: TextInputType.number,
-                                        ),
-                                        const SizedBox(height: 32),
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.end,
-                                          children: [
-                                            TextButton(
-                                              onPressed: () async {
-                                                // Show confirmation dialog
-                                                final shouldDelete = await showDialog<bool>(
-                                                  context: context,
-                                                  builder: (context) => AlertDialog(
-                                                    title: Text(
-                                                      'Ürünü Sil',
+                                              ),
+                                            ),
+                                            const SizedBox(height: 16),
+                                            Text(
+                                              'Sipariş Tipi',
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w500,
+                                                color: Colors.grey[700],
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey[50],
+                                                borderRadius: BorderRadius.circular(12),
+                                                border: Border.all(
+                                                  color: Colors.grey[200]!,
+                                                ),
+                                              ),
+                                              child: StatefulBuilder(
+                                                builder: (context, setState) {
+                                                  return DropdownButtonFormField<String>(
+                                                    value: selectedOrderType,
+                                                    decoration: const InputDecoration(
+                                                      border: InputBorder.none,
+                                                    ),
+                                                    icon: Icon(Icons.arrow_drop_down, color: Colors.grey[600], size: 20),
+                                                    isExpanded: true,
+                                                    dropdownColor: Colors.white,
+                                                    menuMaxHeight: 200,
+                                                    hint: Text(
+                                                      'Sipariş tipi seçin',
                                                       style: GoogleFonts.poppins(
-                                                        fontWeight: FontWeight.w600,
+                                                        color: Colors.grey[400],
+                                                        fontSize: 14,
                                                       ),
                                                     ),
-                                                    content: Text(
-                                                      'Bu ürünü silmek istediğinizden emin misiniz?',
-                                                      style: GoogleFonts.poppins(),
-                                                    ),
-                                                    actions: [
-                                                      TextButton(
-                                                        onPressed: () => Navigator.pop(context, false),
+                                                    items: ['Mutfak', 'Bar'].map((type) {
+                                                      return DropdownMenuItem<String>(
+                                                        value: type,
                                                         child: Text(
-                                                          'İptal',
-                                                          style: GoogleFonts.poppins(),
+                                                          type,
+                                                          style: GoogleFonts.poppins(
+                                                            fontSize: 14,
+                                                            color: Colors.black87,
+                                                          ),
                                                         ),
-                                                      ),
-                                                      TextButton(
-                                                        onPressed: () => Navigator.pop(context, true),
-                                                        style: TextButton.styleFrom(
-                                                          foregroundColor: Colors.red,
-                                                        ),
-                                                        child: Text(
-                                                          'Sil',
-                                                          style: GoogleFonts.poppins(),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                );
-
-                                                if (shouldDelete == true && item.id != null) {
-                                                  try {
-                                                    await ref.read(menuProvider.notifier).deleteProduct(item.id!, context);
-                                                    if (context.mounted) {
-                                                      Navigator.of(context).pop(); // Close the edit dialog
-                                                    }
-                                                  } catch (e) {
-                                                    if (context.mounted) {
-                                                      ScaffoldMessenger.of(context).showSnackBar(
-                                                        SnackBar(content: Text('Ürün silinirken hata oluştu: $e')),
                                                       );
-                                                    }
-                                                  }
-                                                }
-                                              },
-                                              style: TextButton.styleFrom(
-                                                foregroundColor: Colors.red,
-                                              ),
-                                              child: Text(
-                                                'Sil',
-                                                style: GoogleFonts.poppins(
-                                                  fontSize: 16,
-                                                ),
-                                              ),
-                                            ),
-                                            const Spacer(),
-                                            TextButton(
-                                              onPressed: () => Navigator.pop(context),
-                                              child: Text(
-                                                'İptal',
-                                                style: GoogleFonts.poppins(
-                                                  fontSize: 16,
-                                                  color: Colors.grey[600],
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 16),
-                                            ElevatedButton(
-                                              onPressed: () async {
-                                                try {
-                                                  final updatedProduct = Menu(
-                                                    id: item.id,
-                                                    title: titleController.text,
-                                                    price: double.tryParse(priceController.text),
-                                                    category: categoryController.text,
-                                                    stock: int.tryParse(stockController.text),
-                                                    image: item.image,
-                                                    status: item.status,
-                                                    orderType: selectedOrderType,
+                                                    }).toList(),
+                                                    onChanged: (value) {
+                                                      setState(() {
+                                                        selectedOrderType = value;
+                                                      });
+                                                    },
                                                   );
-
-                                                  await ref.read(menuProvider.notifier).updateProduct(updatedProduct, context);
-                                                  if (context.mounted) {
-                                                    Navigator.of(context).pop();
-                                                  }
-                                                } catch (e) {
-                                                  if (context.mounted) {
-                                                    ScaffoldMessenger.of(context).showSnackBar(
-                                                      SnackBar(content: Text('Güncelleme hatası: $e')),
+                                                },
+                                              ),
+                                            ),
+                                            const SizedBox(height: 16),
+                                            _buildTextField(
+                                              controller: stockController,
+                                              label: 'Stok',
+                                              hint: 'Ürün stok miktarını girin',
+                                              keyboardType: TextInputType.number,
+                                            ),
+                                            const SizedBox(height: 16),
+                                            Row(
+                                              children: [
+                                                Text(
+                                                  'Menüde Görünür',
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w500,
+                                                    color: Colors.grey[700],
+                                                  ),
+                                                ),
+                                                const Spacer(),
+                                                StatefulBuilder(
+                                                  builder: (context, setState) {
+                                                    return Switch(
+                                                      value: isVisible,
+                                                      onChanged: (value) {
+                                                        setState(() {
+                                                          isVisible = value;
+                                                        });
+                                                      },
+                                                      activeColor: Colors.orange,
                                                     );
-                                                  }
-                                                }
-                                              },
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor: Colors.orange,
-                                                padding: const EdgeInsets.symmetric(
-                                                  horizontal: 24,
-                                                  vertical: 12,
+                                                  },
                                                 ),
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius: BorderRadius.circular(12),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 32),
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.end,
+                                              children: [
+                                                TextButton(
+                                                  onPressed: () async {
+                                                    final shouldDelete = await showDialog<bool>(
+                                                      context: context,
+                                                      builder: (context) => AlertDialog(
+                                                        title: Text(
+                                                          'Ürünü Sil',
+                                                          style: GoogleFonts.poppins(
+                                                            fontWeight: FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                        content: Text(
+                                                          'Bu ürünü silmek istediğinizden emin misiniz?',
+                                                          style: GoogleFonts.poppins(),
+                                                        ),
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed: () => Navigator.pop(context, false),
+                                                            child: Text(
+                                                              'İptal',
+                                                              style: GoogleFonts.poppins(),
+                                                            ),
+                                                          ),
+                                                          TextButton(
+                                                            onPressed: () => Navigator.pop(context, true),
+                                                            style: TextButton.styleFrom(
+                                                              foregroundColor: Colors.red,
+                                                            ),
+                                                            child: Text(
+                                                              'Sil',
+                                                              style: GoogleFonts.poppins(),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    );
+
+                                                    if (shouldDelete == true && item.id != null) {
+                                                      try {
+                                                        await ref.read(menuProvider.notifier).deleteProduct(item.id!, context);
+                                                        if (context.mounted) {
+                                                          Navigator.of(context).pop(); // Close the edit dialog
+                                                        }
+                                                      } catch (e) {
+                                                        if (context.mounted) {
+                                                          ScaffoldMessenger.of(context).showSnackBar(
+                                                            SnackBar(content: Text('Ürün silinirken hata oluştu: $e')),
+                                                          );
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  style: TextButton.styleFrom(
+                                                    foregroundColor: Colors.red,
+                                                  ),
+                                                  child: Text(
+                                                    'Sil',
+                                                    style: GoogleFonts.poppins(
+                                                      fontSize: 16,
+                                                    ),
+                                                  ),
                                                 ),
-                                              ),
-                                              child: Text(
-                                                'Kaydet',
-                                                style: GoogleFonts.poppins(
-                                                  fontSize: 16,
-                                                  color: Colors.white,
+                                                const Spacer(),
+                                                TextButton(
+                                                  onPressed: () => Navigator.pop(context),
+                                                  child: Text(
+                                                    'İptal',
+                                                    style: GoogleFonts.poppins(
+                                                      fontSize: 16,
+                                                      color: Colors.grey[600],
+                                                    ),
+                                                  ),
                                                 ),
-                                              ),
+                                                const SizedBox(width: 16),
+                                                ElevatedButton(
+                                                  onPressed: () async {
+                                                    try {
+                                                      final updatedProduct = Menu(
+                                                        id: item.id,
+                                                        title: titleController.text,
+                                                        price: double.tryParse(priceController.text),
+                                                        category: categoryController.text,
+                                                        stock: int.tryParse(stockController.text),
+                                                        image: item.image,
+                                                        status: item.status,
+                                                        orderType: selectedOrderType,
+                                                        isVisibleInMenu: isVisible,
+                                                      );
+
+                                                      await ref.read(menuProvider.notifier).updateProduct(updatedProduct, context);
+                                                      if (context.mounted) {
+                                                        Navigator.of(context).pop();
+                                                      }
+                                                    } catch (e) {
+                                                      if (context.mounted) {
+                                                        ScaffoldMessenger.of(context).showSnackBar(
+                                                          SnackBar(content: Text('Güncelleme hatası: $e')),
+                                                        );
+                                                      }
+                                                    }
+                                                  },
+                                                  style: ElevatedButton.styleFrom(
+                                                    backgroundColor: Colors.orange,
+                                                    padding: const EdgeInsets.symmetric(
+                                                      horizontal: 24,
+                                                      vertical: 12,
+                                                    ),
+                                                    shape: RoundedRectangleBorder(
+                                                      borderRadius: BorderRadius.circular(12),
+                                                    ),
+                                                  ),
+                                                  child: Text(
+                                                    'Kaydet',
+                                                    style: GoogleFonts.poppins(
+                                                      fontSize: 16,
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ],
                                         ),
-                                      ],
+                                      ),
                                     ),
                                   ),
                                 );
