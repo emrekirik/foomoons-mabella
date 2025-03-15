@@ -132,7 +132,14 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
                 ),
               ],
             ),
-            _buildPaymentTypeToggle(),
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildPaymentTypeToggle(),
+                ],
+              ),
+            ),
             _buildPaymentButtons(),
           ],
         ),
@@ -771,6 +778,54 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
                 },
               ),
             ),
+            if (selectedPaymentType == 'product' && selectedIndexes.isNotEmpty)
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+                  border: Border(top: BorderSide(color: Colors.grey.shade200)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.shopping_basket_outlined,
+                          size: 16,
+                          color: Colors.orange.shade700,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Seçili Ürünler:',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.orange.shade200),
+                      ),
+                      child: Text(
+                        '₺${selectedIndexes.fold<double>(0.0, (total, index) => total + ((leftList[index].price ?? 0.0) * (leftList[index].piece ?? 1))).toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.orange.shade700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
       ),
