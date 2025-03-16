@@ -1,0 +1,2 @@
+/Users/emrekirik/Downloads/foomoons-proje-dosyaları/foomoons-mabella/android/app/.cxx/Debug/212p5l1m/armeabi-v7a/CMakeFiles/edit_cache.dir
+/Users/emrekirik/Downloads/foomoons-proje-dosyaları/foomoons-mabella/android/app/.cxx/Debug/212p5l1m/armeabi-v7a/CMakeFiles/rebuild_cache.dir

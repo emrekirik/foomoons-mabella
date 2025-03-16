@@ -33,12 +33,10 @@ class AuthService {
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
         final token = responseData['token'];
-        final expiration = responseData['expiration'];
 
         // Token'ı ve diğer bilgileri SharedPreferences'a kaydet
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', token);
-        await prefs.setString('expiration', expiration);
         await prefs.setBool('isLoggedIn', true);
         await prefs.setString('userEmail', email);
 
@@ -88,19 +86,8 @@ class AuthService {
   Future<bool> isLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
-    final expiration = prefs.getString('expiration');
     
-    if (token == null || expiration == null) {
-      return false;
-    }
-
-    final expirationDate = DateTime.parse(expiration);
-    if (expirationDate.isBefore(DateTime.now())) {
-      await prefs.clear();
-      return false;
-    }
-
-    return true;
+    return token != null;
   }
 
   Future<String?> getToken() async {

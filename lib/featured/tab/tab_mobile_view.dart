@@ -249,6 +249,11 @@ List<NavigationRailDestination> _buildNavigationItems(String userType, bool isSe
         label: buildLabel('Adisyonlar'),
       ),
       NavigationRailDestination(
+        icon: const Icon(Icons.monitor_rounded),
+        selectedIcon: const Icon(Icons.monitor_rounded),
+        label: buildLabel('Siparişler'),
+      ),
+      NavigationRailDestination(
         icon: const Icon(Icons.restaurant_menu_sharp),
         selectedIcon: const Icon(Icons.restaurant_menu),
         label: buildLabel('Menu'),
@@ -320,6 +325,7 @@ List<Widget> _buildPageViews(String userType, bool isSelfService) {
   } else if (userType == 'garson') {
     return [
       TablesMobileView(isSelfService: isSelfService),
+      const AdminMobileView(),
       const MenuMobileView(),
     ];
   } else if (userType == 'mutfak') {
