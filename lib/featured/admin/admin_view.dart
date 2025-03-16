@@ -596,12 +596,15 @@ class _AdminViewState extends ConsumerState<AdminView> {
                             onPressed: isProcessing
                                 ? null
                                 : () async {
+                                    if (!mounted) return;
                                     setState(() {
                                       isProcessing = true;
                                     });
                                     try {
                                       await ref.read(adminProvider.notifier).updateOrderStatus(item, 'teslim edildi');
-                                      await Future.delayed(const Duration(milliseconds: 500));
+                                      if (mounted) {
+                                        await Future.delayed(const Duration(milliseconds: 500));
+                                      }
                                     } finally {
                                       if (mounted) {
                                         setState(() {
@@ -803,15 +806,19 @@ class _AdminViewState extends ConsumerState<AdminView> {
                         onPressed: isProcessing
                             ? null
                             : () async {
+                                if (!mounted) return;
                                 setState(() {
                                   isProcessing = true;
                                 });
                                 try {
                                   // Gruptaki tüm siparişleri hazır yap
                                   for (var order in groupOrders) {
+                                    if (!mounted) break;
                                     await ref.read(adminProvider.notifier).updateOrderStatus(order, 'teslim edildi');
                                   }
-                                  await Future.delayed(const Duration(milliseconds: 500));
+                                  if (mounted) {
+                                    await Future.delayed(const Duration(milliseconds: 500));
+                                  }
                                 } finally {
                                   if (mounted) {
                                     setState(() {
