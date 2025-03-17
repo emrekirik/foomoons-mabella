@@ -87,7 +87,9 @@ class _AdminViewState extends ConsumerState<AdminView> {
         preparingOrders.where((order) => order.orderType == 'Bar').toList();
     final pastOrders = orders
         .where((order) =>
-            order.status == 'teslim edildi' || order.status == 'iptal edildi')
+            (order.status == 'teslim edildi' || order.status == 'iptal edildi') &&
+            order.orderDate != null &&
+            DateTime.now().difference(order.orderDate!.toDate()).inDays <= 2)
         .toList();
 
     return Padding(

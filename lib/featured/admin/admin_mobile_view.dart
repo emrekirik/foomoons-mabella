@@ -48,7 +48,10 @@ class _AdminMobileViewState extends ConsumerState<AdminMobileView> {
     final preparingOrders =
         orders.where((order) => order.status == 'hazırlanıyor').toList();
     final pastOrders =
-        orders.where((order) => order.status == 'teslim edildi' || order.status == 'iptal edildi').toList();
+        orders.where((order) => 
+            (order.status == 'teslim edildi' || order.status == 'iptal edildi') &&
+            order.orderDate != null &&
+            DateTime.now().difference(order.orderDate!.toDate()).inDays <= 2).toList();
 
     return Column(
       children: [
