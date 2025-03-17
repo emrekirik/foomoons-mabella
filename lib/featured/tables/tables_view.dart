@@ -35,6 +35,7 @@ class _TablesViewState extends ConsumerState<TablesView>
   bool isEditMode = false;
   late AnimationController _rotationController;
   int? draggedTableId;
+  String? draggedTableOriginalArea;
 
   @override
   void initState() {
@@ -257,66 +258,76 @@ class _TablesViewState extends ConsumerState<TablesView>
                               scrollDirection: Axis.horizontal,
                               itemBuilder: (context, index) {
                                 final area = areas[index];
-                                return Container(
-                                  width: 140,
-                                  decoration: BoxDecoration(
-                                    border: Border(
-                                      left: const BorderSide(
-                                          color: Colors.black12, width: 1),
-                                      bottom: BorderSide(
-                                        color: selectedArea == area.title
-                                            ? Colors.orange
-                                            : Colors.transparent,
-                                        width: 3,
-                                      ),
-                                    ),
-                                  ),
-                                  child: Material(
-                                    color: ColorConstants.white,
-                                    child: Stack(
-                                      children: [
-                                        InkWell(
-                                          splashColor:
-                                              Colors.orange.withOpacity(0.6),
-                                          onTap: () {
-                                            tablesNotifier.selectArea(area.title);
-                                          },
-                                          child: Center(
-                                            child: Text(
-                                              area.title ?? '',
-                                              style: GoogleFonts.poppins(
-                                                  fontSize: 13,
-                                                  fontWeight: FontWeight.w500),
-                                            ),
+                                return DragTarget<int>(
+                                  onWillAccept: (data) {
+                                    if (data != null && area.title != selectedArea) {
+                                      ref.read(tablesProvider.notifier).selectArea(area.title);
+                                    }
+                                    return false;
+                                  },
+                                  builder: (context, candidateData, rejectedData) {
+                                    return Container(
+                                      width: 140,
+                                      decoration: BoxDecoration(
+                                        border: Border(
+                                          left: const BorderSide(
+                                              color: Colors.black12, width: 1),
+                                          bottom: BorderSide(
+                                            color: selectedArea == area.title
+                                                ? Colors.orange
+                                                : Colors.transparent,
+                                            width: 3,
                                           ),
                                         ),
-                                        if (isEditMode)
-                                          Positioned(
-                                            right: 4,
-                                            top: 4,
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                color: Colors.orange.withOpacity(0.1),
-                                                borderRadius: BorderRadius.circular(4),
-                                              ),
-                                              child: IconButton(
-                                                padding: const EdgeInsets.all(4),
-                                                constraints: const BoxConstraints(),
-                                                icon: const Icon(
-                                                  Icons.edit,
-                                                  size: 16,
-                                                  color: Colors.orange,
+                                      ),
+                                      child: Material(
+                                        color: ColorConstants.white,
+                                        child: Stack(
+                                          children: [
+                                            InkWell(
+                                              splashColor:
+                                                  Colors.orange.withOpacity(0.6),
+                                              onTap: () {
+                                                tablesNotifier.selectArea(area.title);
+                                              },
+                                              child: Center(
+                                                child: Text(
+                                                  area.title ?? '',
+                                                  style: GoogleFonts.poppins(
+                                                      fontSize: 13,
+                                                      fontWeight: FontWeight.w500),
                                                 ),
-                                                onPressed: () {
-                                                  _showEditAreaDialog(context, area, tablesNotifier);
-                                                },
-                                                tooltip: 'Bölge Adını Düzenle',
                                               ),
                                             ),
-                                          ),
-                                      ],
-                                    ),
-                                  ),
+                                            if (isEditMode)
+                                              Positioned(
+                                                right: 4,
+                                                top: 4,
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.orange.withOpacity(0.1),
+                                                    borderRadius: BorderRadius.circular(4),
+                                                  ),
+                                                  child: IconButton(
+                                                    padding: const EdgeInsets.all(4),
+                                                    constraints: const BoxConstraints(),
+                                                    icon: const Icon(
+                                                      Icons.edit,
+                                                      size: 16,
+                                                      color: Colors.orange,
+                                                    ),
+                                                    onPressed: () {
+                                                      _showEditAreaDialog(context, area, tablesNotifier);
+                                                    },
+                                                    tooltip: 'Bölge Adını Düzenle',
+                                                  ),
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 );
                               },
                               itemCount: areas.length),
@@ -660,7 +671,7 @@ class _TablesViewState extends ConsumerState<TablesView>
                             ? DragTarget<int>(
                                 onWillAccept: (data) => data != tableId,
                                 onAccept: (draggedId) async {
-                                  final draggedTable = filteredTables
+                                  final draggedTable = tables
                                       .firstWhere((t) => t.id == draggedId);
                                   final targetTable = filteredTables[index];
 
@@ -717,7 +728,9 @@ class _TablesViewState extends ConsumerState<TablesView>
                                                   ),
                                                   const SizedBox(height: 24),
                                                   Text(
-                                                    '${draggedTable.tableTitle} masasını ${targetTable.tableTitle} masası ile birleştirmek istediğinizden emin misiniz?',
+                                                    draggedTable.area != targetTable.area
+                                                        ? '${draggedTable.tableTitle} masasını ${draggedTable.area} bölgesinden ${targetTable.area} bölgesindeki ${targetTable.tableTitle} masasına taşımak istediğinizden emin misiniz?'
+                                                        : '${draggedTable.tableTitle} masasını ${targetTable.tableTitle} masası ile birleştirmek istediğinizden emin misiniz?',
                                                     style: GoogleFonts.poppins(
                                                       fontSize: 16,
                                                       color: Colors.grey[700],
@@ -766,7 +779,9 @@ class _TablesViewState extends ConsumerState<TablesView>
                                                             Navigator.pop(
                                                                 context, true),
                                                         child: Text(
-                                                          'Birleştir',
+                                                          draggedTable.area != targetTable.area
+                                                              ? 'Taşı'
+                                                              : 'Birleştir',
                                                           style: GoogleFonts
                                                               .poppins(
                                                             fontSize: 16,
@@ -820,7 +835,9 @@ class _TablesViewState extends ConsumerState<TablesView>
                                             .showSnackBar(
                                           SnackBar(
                                             content: Text(
-                                              'Masalar başarıyla birleştirildi',
+                                              draggedTable.area != targetTable.area
+                                                  ? 'Masa başarıyla taşındı'
+                                                  : 'Masalar başarıyla birleştirildi',
                                               style: GoogleFonts.poppins(),
                                             ),
                                             backgroundColor: Colors.green,
@@ -833,7 +850,9 @@ class _TablesViewState extends ConsumerState<TablesView>
                                             .showSnackBar(
                                           SnackBar(
                                             content: Text(
-                                              'Masalar birleştirilirken bir hata oluştu',
+                                              draggedTable.area != targetTable.area
+                                                  ? 'Masa taşınırken bir hata oluştu'
+                                                  : 'Masalar birleştirilirken bir hata oluştu',
                                               style: GoogleFonts.poppins(),
                                             ),
                                             backgroundColor: Colors.red,
@@ -849,7 +868,9 @@ class _TablesViewState extends ConsumerState<TablesView>
                                           .showSnackBar(
                                         SnackBar(
                                           content: Text(
-                                            'Masalar birleştirilirken bir hata oluştu: $e',
+                                            draggedTable.area != targetTable.area
+                                                ? 'Masa taşınırken bir hata oluştu: $e'
+                                                : 'Masalar birleştirilirken bir hata oluştu: $e',
                                             style: GoogleFonts.poppins(),
                                           ),
                                           backgroundColor: Colors.red,
@@ -862,6 +883,12 @@ class _TablesViewState extends ConsumerState<TablesView>
                                     (context, candidateData, rejectedData) {
                                   return Draggable<int>(
                                     data: tableId,
+                                    onDragStarted: () {
+                                      _onDragStarted(filteredTables[index].area ?? '');
+                                    },
+                                    onDragEnd: (_) {
+                                      _onDragEnd();
+                                    },
                                     feedback: Material(
                                       elevation: 4.0,
                                       child: Container(
@@ -1262,5 +1289,17 @@ class _TablesViewState extends ConsumerState<TablesView>
         );
       },
     );
+  }
+
+  void _onDragStarted(String originalArea) {
+    setState(() {
+      draggedTableOriginalArea = originalArea;
+    });
+  }
+
+  void _onDragEnd() {
+    setState(() {
+      draggedTableOriginalArea = null;
+    });
   }
 }

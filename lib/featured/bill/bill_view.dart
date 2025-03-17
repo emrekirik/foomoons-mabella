@@ -653,7 +653,7 @@ class _BillViewState extends ConsumerState<BillView>
                                                                     border: Border.all(
                                                                         color: Colors.green.withOpacity(0.5),
                                                                         width: 1)),
-                                                                child: Row(
+                                                                child: const Row(
                                                                   mainAxisSize: MainAxisSize.min,
                                                                   children: [
                                                                     Icon(
@@ -661,7 +661,7 @@ class _BillViewState extends ConsumerState<BillView>
                                                                       size: 12,
                                                                       color: Colors.green,
                                                                     ),
-                                                                    const SizedBox(width: 4),
+                                                                    SizedBox(width: 4),
                                                                     Text(
                                                                       'Ödendi',
                                                                       style: TextStyle(
