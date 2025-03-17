@@ -58,6 +58,7 @@ class OrderService {
         'businessId': businessId,
         'customerMessage': item.customerMessage ?? '',
         'orderType': item.orderType ?? 'Bar',
+        'sender': 'garson',
       };
 
       print('📤 API isteği gönderiliyor...');
