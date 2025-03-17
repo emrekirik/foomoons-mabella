@@ -51,6 +51,8 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
   String? errorMessage;
   String selectedPaymentType = 'product';
   late TextEditingController inputController;
+  // Parçalama işlemi için loading state
+  Set<int> splittingItems = {};
 
   @override
   void initState() {
@@ -767,6 +769,89 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
                                       size: 14,
                                       color: Colors.orange.shade700,
                                     ),
+                                  ),
+                                if ((item.piece ?? 1) > 1)
+                                  IconButton(
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                    icon: splittingItems.contains(item.id) 
+                                      ? const SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
+                                          ),
+                                        )
+                                      : Icon(
+                                          Icons.call_split,
+                                          size: 16,
+                                          color: Colors.orange.shade700,
+                                        ),
+                                    onPressed: splittingItems.contains(item.id) 
+                                      ? null 
+                                      : () async {
+                                      try {
+                                        // İşlem başladığında loading state'i set et
+                                        setState(() {
+                                          splittingItems.add(item.id ?? -1);
+                                        });
+
+                                        final pieces = item.piece ?? 1;
+                                        final tableService = ref.read(tableServiceProvider);
+                                        
+                                        // Her bir adet için ayrı adisyon oluştur
+                                        for (int i = 0; i < pieces; i++) {
+                                          final newItem = item.copyWith(
+                                            tableId: widget.tableId,
+                                            billId: null,
+                                            piece: 1,
+                                          );
+                                          await tableService.addItemToBill(newItem);
+                                        }
+
+                                        // Orijinal adisyonu sil
+                                        if (item.id != null) {
+                                          await PaymentService.deleteBillItem(item.id!);
+                                        }
+
+                                        // Adisyon listesini yenile
+                                        await ref.read(tablesProvider.notifier).fetchTableBillApi(widget.tableId);
+                                        
+                                        // Dialog'daki listeleri güncelle
+                                        final updatedBill = ref.read(tablesProvider).getTableBill(widget.tableId);
+                                        setState(() {
+                                          leftList = updatedBill.where((item) => item.status != 'ödendi').toList();
+                                          rightList = updatedBill.where((item) => item.status == 'ödendi').toList();
+                                          _calculateAmounts();
+                                          // İşlem bittiğinde loading state'i temizle
+                                          splittingItems.remove(item.id ?? -1);
+                                        });
+
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text('${item.title} adisyonu ${pieces} ayrı adisyona bölündü'),
+                                              backgroundColor: Colors.green,
+                                            ),
+                                          );
+                                        }
+                                      } catch (e) {
+                                        // Hata durumunda da loading state'i temizle
+                                        setState(() {
+                                          splittingItems.remove(item.id ?? -1);
+                                        });
+                                        
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text('Adisyon parçalanırken hata oluştu: $e'),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    },
                                   ),
                               ],
                             ),
