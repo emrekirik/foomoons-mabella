@@ -160,7 +160,7 @@ class TableService {
     }
   }
 
-  Future<Menu> addItemToBill(Menu item, [List<Menu>? existingBillItems]) async {
+  Future<Menu> addItemToBill(Menu item, [List<Menu>? existingBillItems, bool isMerging = false]) async {
     try {
       print('🔍 Masa için mevcut adisyon kontrol ediliyor...');
       
@@ -184,7 +184,7 @@ class TableService {
         "piece": item.piece ?? 1,
         "preparationTime": DateTime.now().toIso8601String(),
         "price": item.price,
-        "status": 'hazırlanıyor',
+        "status": isMerging ? item.status : 'hazırlanıyor',
         "title": item.title,
         "billId": billId,
       };
@@ -510,7 +510,7 @@ class TableService {
           tableId: targetTableId,
           billId: targetBillId,
         );
-        await addItemToBill(newItem);
+        await addItemToBill(newItem, null, true);
         print('✅ "${item.title}" aktarıldı');
       }
 

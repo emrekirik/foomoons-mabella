@@ -116,6 +116,7 @@ class OrderService {
         'businessId': order.businessId,
         'customerMessage': order.customerMessage ?? '', // Default empty string since it's not in our model
         'orderType': order.orderType,
+        'sender': order.sender,
       };
       
       print('OrderService: Request body: ${json.encode(requestBody)}');
