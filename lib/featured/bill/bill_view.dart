@@ -591,7 +591,7 @@ class _BillViewState extends ConsumerState<BillView>
                                                         const EdgeInsets
                                                             .symmetric(
                                                             horizontal: 12),
-                                                    leading: isMultiSelectMode && item.status != 'ödendi' ? Checkbox(
+                                                    leading: isMultiSelectMode ? Checkbox(
                                                       value: selectedItems.contains(item.id),
                                                       onChanged: (bool? value) {
                                                         if (item.id != null) {
@@ -642,20 +642,38 @@ class _BillViewState extends ConsumerState<BillView>
                                                       mainAxisSize:
                                                           MainAxisSize.min,
                                                       children: [
-                                                        item.status != 'ödendi'
-                                                            ? const SizedBox()
-                                                            : Text(
-                                                                '${item.status}',
-                                                                style: const TextStyle(
-                                                                    fontSize:
-                                                                        12,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .w600,
-                                                                    color: Colors
-                                                                        .green),
-                                                              ),
-                                                        if (!isMultiSelectMode && item.status != 'ödendi')
+                                                        item.status == 'ödendi'
+                                                            ? Container(
+                                                                padding: const EdgeInsets.symmetric(
+                                                                    horizontal: 8,
+                                                                    vertical: 4),
+                                                                decoration: BoxDecoration(
+                                                                    color: Colors.green.withOpacity(0.1),
+                                                                    borderRadius: BorderRadius.circular(12),
+                                                                    border: Border.all(
+                                                                        color: Colors.green.withOpacity(0.5),
+                                                                        width: 1)),
+                                                                child: Row(
+                                                                  mainAxisSize: MainAxisSize.min,
+                                                                  children: [
+                                                                    Icon(
+                                                                      Icons.check_circle,
+                                                                      size: 12,
+                                                                      color: Colors.green,
+                                                                    ),
+                                                                    const SizedBox(width: 4),
+                                                                    Text(
+                                                                      'Ödendi',
+                                                                      style: TextStyle(
+                                                                          fontSize: 12,
+                                                                          fontWeight: FontWeight.w500,
+                                                                          color: Colors.green),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              )
+                                                            : const SizedBox(),
+                                                        if (!isMultiSelectMode)
                                                         IconButton(
                                                           icon: const Icon(
                                                             Icons
