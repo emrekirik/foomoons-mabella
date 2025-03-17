@@ -16,27 +16,103 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
       final responseData = await reportService.fetchPastBillItems();
 
       final DateTime now = DateTime.now();
-      final DateTime dayStart = await _settingsService.getStartDateTime(now);
-      final DateTime dayEnd = await _settingsService.getEndDateTime(now);
+      
+      // Gün başlangıç ve bitiş zamanlarını al
+      final String? startTimeStr = await _settingsService.getDayStartTime();
+      final String? endTimeStr = await _settingsService.getDayEndTime();
+      
+      // Varsayılan zamanları ayarla
+      final startTimeParts = startTimeStr?.split(' ') ?? ['00:00'];
+      final endTimeParts = endTimeStr?.split(' ') ?? ['23:59'];
+      
+      // Saat ve dakika değerlerini ayır
+      final startHourMinute = startTimeParts[0].split(':');
+      final endHourMinute = endTimeParts[0].split(':');
+      
+      final dayStart = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        int.parse(startHourMinute[0]),
+        int.parse(startHourMinute[1]),
+      );
+      
+      final bool isEndTimeNextDay = endTimeParts.length > 1 && endTimeParts[1] == '(+1)';
+      
+      final dayEnd = DateTime(
+        now.year,
+        now.month,
+        now.day + (isEndTimeNextDay ? 1 : 0),
+        int.parse(endHourMinute[0]),
+        int.parse(endHourMinute[1]),
+      );
 
       // Periyoda göre toplam değerler için filtreleme
       final List<dynamic> filteredDataForTotals = responseData.where((item) {
         if (item['preparationTime'] == null) return false;
 
         final DateTime itemDate = DateTime.parse(item['preparationTime']);
+        final DateTime itemDayStart = DateTime(
+          itemDate.year,
+          itemDate.month,
+          itemDate.day,
+          dayStart.hour,
+          dayStart.minute,
+        );
+
+        DateTime itemDayEnd;
+        if (isEndTimeNextDay) {
+          // Eğer gün sonu ertesi güne sarkıyorsa, bitiş zamanını ertesi güne ayarla
+          final nextDay = itemDate.add(const Duration(days: 1));
+          itemDayEnd = DateTime(
+            nextDay.year,
+            nextDay.month,
+            nextDay.day,
+            dayEnd.hour,
+            dayEnd.minute,
+          );
+        } else {
+          itemDayEnd = DateTime(
+            itemDate.year,
+            itemDate.month,
+            itemDate.day,
+            dayEnd.hour,
+            dayEnd.minute,
+          );
+        }
 
         switch (period) {
           case 'Günlük':
-            final bool isSameDay = itemDate.year == now.year &&
-                itemDate.month == now.month &&
-                itemDate.day == now.day;
-            if (!isSameDay) return false;
-            return itemDate.isAfter(dayStart) && itemDate.isBefore(dayEnd);
+            // Bugünün başlangıç ve bitiş zamanlarını hesapla
+            final DateTime todayStart = DateTime(
+              now.year,
+              now.month,
+              now.day,
+              dayStart.hour,
+              dayStart.minute,
+            );
+            final DateTime todayEnd = isEndTimeNextDay
+                ? DateTime(
+                    now.year,
+                    now.month,
+                    now.day + 1,
+                    dayEnd.hour,
+                    dayEnd.minute,
+                  )
+                : DateTime(
+                    now.year,
+                    now.month,
+                    now.day,
+                    dayEnd.hour,
+                    dayEnd.minute,
+                  );
+            return itemDate.isAfter(todayStart) && itemDate.isBefore(todayEnd);
 
           case 'Haftalık':
             final difference = now.difference(itemDate).inDays;
             if (difference > 7) return false;
 
+            // Her gün için başlangıç ve bitiş zamanlarını kontrol et
             final itemDayStart = DateTime(
               itemDate.year,
               itemDate.month,
@@ -44,44 +120,36 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
               dayStart.hour,
               dayStart.minute,
             );
-            final itemDayEnd = DateTime(
-              itemDate.year,
-              itemDate.month,
-              itemDate.day,
-              dayEnd.hour,
-              dayEnd.minute,
-            );
-            return itemDate.isAfter(itemDayStart) &&
-                itemDate.isBefore(itemDayEnd);
+            final itemDayEnd = isEndTimeNextDay
+                ? DateTime(
+                    itemDate.year,
+                    itemDate.month,
+                    itemDate.day + 1,
+                    dayEnd.hour,
+                    dayEnd.minute,
+                  )
+                : DateTime(
+                    itemDate.year,
+                    itemDate.month,
+                    itemDate.day,
+                    dayEnd.hour,
+                    dayEnd.minute,
+                  );
+            return itemDate.isAfter(itemDayStart) && itemDate.isBefore(itemDayEnd);
 
           case 'Aylık':
             final bool isSameMonth =
                 itemDate.year == now.year && itemDate.month == now.month;
             if (!isSameMonth) return false;
 
-            final itemDayStart = DateTime(
-              itemDate.year,
-              itemDate.month,
-              itemDate.day,
-              dayStart.hour,
-              dayStart.minute,
-            );
-            final itemDayEnd = DateTime(
-              itemDate.year,
-              itemDate.month,
-              itemDate.day,
-              dayEnd.hour,
-              dayEnd.minute,
-            );
-            return itemDate.isAfter(itemDayStart) &&
-                itemDate.isBefore(itemDayEnd);
+            return itemDate.isAfter(itemDayStart) && itemDate.isBefore(itemDayEnd);
 
           default:
             return true;
         }
       }).toList();
 
-      // Son 7 gün için ayrı filtreleme (grafik için)
+      // Son 30 gün için ayrı filtreleme (grafik için)
       final List<dynamic> lastThirtyDaysData = responseData.where((item) {
         if (item['preparationTime'] == null) return false;
 
@@ -89,7 +157,33 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
         final difference = now.difference(itemDate).inDays;
 
         // Son 30 günü kontrol et
-        return difference <= 30;
+        if (difference > 30) return false;
+
+        // Gün başı ve sonu kontrolü
+        final DateTime itemDayStart = DateTime(
+          itemDate.year,
+          itemDate.month,
+          itemDate.day,
+          dayStart.hour,
+          dayStart.minute,
+        );
+        final DateTime itemDayEnd = isEndTimeNextDay
+            ? DateTime(
+                itemDate.year,
+                itemDate.month,
+                itemDate.day + 1,
+                dayEnd.hour,
+                dayEnd.minute,
+              )
+            : DateTime(
+                itemDate.year,
+                itemDate.month,
+                itemDate.day,
+                dayEnd.hour,
+                dayEnd.minute,
+              );
+
+        return itemDate.isAfter(itemDayStart) && itemDate.isBefore(itemDayEnd);
       }).toList();
 
       // Toplam değerler için hesaplama
@@ -103,7 +197,6 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
         final price = (item['price'] as num).toInt();
         totalRevenues += price;
 
-        // Giriş kategorisinde olmayan itemları say
         if (item['category'] != 'Giriş') {
           totalOrder++;
         }
@@ -124,7 +217,7 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
         }
       }
 
-      // Son 7 gün için grafik verilerini hesaplama
+      // Son 30 gün için grafik verilerini hesaplama
       Map<String, DailyStats> dailyStats = {};
 
       // Son 30 günün tarihlerini oluştur
@@ -141,10 +234,18 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
         );
       }
 
+      // Her gün için verileri hesapla
       for (var item in lastThirtyDaysData) {
         if (item['preparationTime'] != null) {
           final DateTime preparationTime = DateTime.parse(item['preparationTime']);
-          final dateStr = "${preparationTime.year}-${preparationTime.month.toString().padLeft(2, '0')}-${preparationTime.day.toString().padLeft(2, '0')}";
+          
+          // İşlem tarihini belirle (gün sonu ertesi güne sarkıyorsa ve saat gün sonundan sonraysa ertesi güne at)
+          DateTime effectiveDate = preparationTime;
+          if (isEndTimeNextDay && preparationTime.hour < dayStart.hour) {
+            effectiveDate = preparationTime.subtract(const Duration(days: 1));
+          }
+          
+          final dateStr = "${effectiveDate.year}-${effectiveDate.month.toString().padLeft(2, '0')}-${effectiveDate.day.toString().padLeft(2, '0')}";
           
           if (dailyStats.containsKey(dateStr)) {
             final price = (item['price'] as num).toInt();
@@ -167,16 +268,6 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
         }
       }
 
-      print('\n📊 Günlük İstatistikler:');
-      dailyStats.forEach((date, stats) {
-        print('\n📅 $date:');
-        print('   💰 Toplam Gelir: ${stats.totalRevenue}');
-        print('   💳 Kredi Kartı: ${stats.creditTotal}');
-        print('   💵 Nakit: ${stats.cashTotal}');
-        print('   🛍️ Sipariş Sayısı: ${stats.orderCount}');
-        print('   🎟️ Giriş Sayısı: ${stats.entryCount}');
-      });
-
       state = state.copyWith(
         totalRevenues: totalRevenues,
         totalCredit: totalCredit,
@@ -185,7 +276,6 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
         totalEntry: totalEntry,
         dailyStats: dailyStats,
       );
-      print('\n✅ State güncellendi');
     } catch (e) {
       _handleError(e, 'API\'den geçmiş fatura öğelerini çekerken hata oluştu');
     }
