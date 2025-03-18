@@ -93,33 +93,26 @@ class OrderService {
 
   Future<(bool, Order?)> updateOrder(Order order, String newStatus) async {
     try {
-      print('OrderService: Updating order - ID: ${order.id}, Status: $newStatus');
-      
       // Convert Timestamp to ISO string format
       String? orderDateStr = order.orderDate != null 
           ? DateTime.fromMillisecondsSinceEpoch(order.orderDate!.millisecondsSinceEpoch).toIso8601String()
           : null;
           
-      print('OrderService: Order: $order');
-      print('OrderService: OrderDateStr: $orderDateStr');
-          
       final requestBody = {
         'id': order.id,
         'orderDate': orderDateStr,
         'piece': order.piece,
-        'preprationTime': "2024-12-21T00:59:39.252Z", // Using same date for preparation time
+        'preprationTime': "2024-12-21T00:59:39.252Z",
         'price': order.price,
         'productId': order.productId,
         'tableTitle': order.tableTitle,
         'title': order.title,
         'status': newStatus,
         'businessId': order.businessId,
-        'customerMessage': order.customerMessage ?? '', // Default empty string since it's not in our model
+        'customerMessage': order.customerMessage ?? '',
         'orderType': order.orderType,
         'sender': order.sender,
       };
-      
-      print('OrderService: Request body: ${json.encode(requestBody)}');
       
       final response = await http.post(
         Uri.parse('$baseUrl/orders/update'),
@@ -127,14 +120,10 @@ class OrderService {
         body: json.encode(requestBody),
       );
       
-      print('OrderService: Response status code: ${response.statusCode}');
-      print('OrderService: Response body: ${response.body}');
-      
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
         if (responseData['success'] == true && responseData['data'] != null) {
-          final updatedOrder = Order.fromJson(responseData['data']);
-          return (true, updatedOrder);
+          return (true, Order.fromJson(responseData['data']));
         }
       }
       return (false, null);

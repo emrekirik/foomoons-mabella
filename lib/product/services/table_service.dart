@@ -162,20 +162,15 @@ class TableService {
 
   Future<Menu> addItemToBill(Menu item, [List<Menu>? existingBillItems, bool isMerging = false]) async {
     try {
-      print('🔍 Masa için mevcut adisyon kontrol ediliyor...');
-      
       // Try to get billId from existing items first
       int? billId;
       if (existingBillItems != null && existingBillItems.isNotEmpty) {
         billId = existingBillItems.first.billId;
-        print('📋 Mevcut adisyon bulundu - Bill ID: $billId');
       }
       
       // If no existing billId found, create new one
       billId ??= await _getOrCreateBillId(item.tableId!);
-      print('📝 Adisyon ID: $billId');
 
-      print('➕ Ürün adisyona ekleniyor: ${item.title}');
       // Add item to bill
       final requestBody = {
         "category": item.category,
@@ -188,7 +183,7 @@ class TableService {
         "title": item.title,
         "billId": billId,
       };
-      print('📤 API isteği gönderiliyor...');
+
       final itemResponse = await http.post(
         Uri.parse('$baseUrl/billitems/add'),
         headers: {'Content-Type': 'application/json'},
@@ -196,13 +191,11 @@ class TableService {
       );
 
       if (itemResponse.statusCode != 200) {
-        print('❌ Hata: Ürün adisyona eklenemedi (Status: ${itemResponse.statusCode})');
         throw Exception('Ürün adisyona eklenemedi');
       }
 
-      print('✅ Ürün başarıyla adisyona eklendi');
       final addedItemData = jsonDecode(itemResponse.body)['data'];
-      final menuItem = Menu(
+      return Menu(
         id: addedItemData['id'],
         title: addedItemData['title'],
         price: addedItemData['price']?.toDouble(),
@@ -214,10 +207,7 @@ class TableService {
         tableId: item.tableId,
         billId: billId,
       );
-      print('🎉 İşlem tamamlandı: ${menuItem.title} (${menuItem.piece} adet)');
-      return menuItem;
     } catch (e) {
-      print('💥 Hata oluştu: $e');
       throw Exception('Ürün adisyona eklenirken hata oluştu: $e');
     }
   }

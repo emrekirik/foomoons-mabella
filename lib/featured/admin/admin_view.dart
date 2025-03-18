@@ -813,13 +813,24 @@ class _AdminViewState extends ConsumerState<AdminView> {
                                   isProcessing = true;
                                 });
                                 try {
-                                  // Gruptaki tüm siparişleri hazır yap
-                                  for (var order in groupOrders) {
-                                    if (!mounted) break;
-                                    await ref.read(adminProvider.notifier).updateOrderStatus(order, 'teslim edildi');
+                                  // Gruptaki tüm siparişleri hazır yap - paralel işlem
+                                  final batchSize = 5; // Her batch'te işlenecek sipariş sayısı
+                                  final totalOrders = groupOrders.length;
+                                  
+                                  for (var i = 0; i < totalOrders; i += batchSize) {
+                                    final end = (i + batchSize < totalOrders) ? i + batchSize : totalOrders;
+                                    final batch = groupOrders.sublist(i, end);
+                                    
+                                    // Her batch'i paralel olarak işle
+                                    await Future.wait(
+                                      batch.map((order) => 
+                                        ref.read(adminProvider.notifier).updateOrderStatus(order, 'teslim edildi')
+                                      ),
+                                    );
                                   }
+                                  
                                   if (mounted) {
-                                    await Future.delayed(const Duration(milliseconds: 500));
+                                    await Future.delayed(const Duration(milliseconds: 300));
                                   }
                                 } finally {
                                   if (mounted) {

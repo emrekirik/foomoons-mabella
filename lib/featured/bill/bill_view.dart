@@ -1511,6 +1511,93 @@ class _BillViewState extends ConsumerState<BillView>
   Future<bool?> quickPaymentDialog(
       BuildContext context, List<Menu> tableBill) async {
     bool? isCredit;
+    
+    // Check if it's self service and contains only "Üye Girişi"
+    if (widget.isSelfService && tableBill.length == 1 && tableBill.first.title == 'Üye Girişi') {
+      // Process payment directly with credit card
+      try {
+        final tableBillCopy = List<Menu>.from(tableBill);
+        final rightList = tableBillCopy
+            .map((item) => item.copyWith(
+                  status: 'ödendi',
+                  isCredit: true, // Default to credit card payment
+                ))
+            .toList();
+
+        final success = await PaymentService.processPayment(
+          context: context,
+          ref: ref,
+          tableId: widget.tableId,
+          rightList: rightList,
+          amountItemsToDelete: {},
+          onSavingChanged: (value) {},
+        );
+
+        if (success) {
+          final billItemsForPrinter = rightList
+              .map((item) => {
+                    'title': item.title,
+                    'price': item.price,
+                    'piece': item.piece,
+                    'isCredit': true,
+                    'status': 'ödendi'
+                  })
+              .toList();
+          
+          await _handlePrinting(billItemsForPrinter);
+
+          if (context.mounted) {
+            final tablesNotifier = ref.read(tablesProvider.notifier);
+            final isClosed = await tablesNotifier.hesabiKapat(widget.tableId);
+
+            if (isClosed) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Hesap başarıyla kapatıldı!'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+
+                ref.read(tablesProvider.notifier).fetchTableBillApi(widget.tableId);
+                return true; // Return true for credit card payment
+              }
+            } else {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Hesap kapatılırken bir hata oluştu!'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            }
+          }
+        } else {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Ödeme işlemi başarısız oldu!'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+        return null;
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Bir hata oluştu: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return null;
+      }
+    }
+
+    // Original dialog code for other cases
     return showDialog<bool>(
       context: context,
       barrierDismissible: false,
