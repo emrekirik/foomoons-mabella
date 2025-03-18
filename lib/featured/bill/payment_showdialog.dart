@@ -772,12 +772,15 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
                                   ),
                                 if ((item.piece ?? 1) > 1)
                                   IconButton(
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(),
+                                    padding: const EdgeInsets.all(4),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 24,
+                                      minHeight: 24,
+                                    ),
                                     icon: splittingItems.contains(item.id) 
                                       ? const SizedBox(
-                                          width: 16,
-                                          height: 16,
+                                          width: 20,
+                                          height: 20,
                                           child: CircularProgressIndicator(
                                             strokeWidth: 2,
                                             valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
@@ -785,7 +788,7 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
                                         )
                                       : Icon(
                                           Icons.call_split,
-                                          size: 16,
+                                          size: 20,
                                           color: Colors.orange.shade700,
                                         ),
                                     onPressed: splittingItems.contains(item.id) 
