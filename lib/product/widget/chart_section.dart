@@ -142,11 +142,27 @@ class _ChartSectionState extends State<ChartSection> {
                             ),
                             children: [
                               TextSpan(
-                                text: '${stats.totalRevenue}₺',
+                                text: 'Toplam: ${stats.totalRevenue}₺\n',
                                 style: GoogleFonts.poppins(
                                   color: Colors.white,
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              TextSpan(
+                                text: 'Kredi: ${stats.creditTotal}₺\n',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white.withOpacity(0.9),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                              TextSpan(
+                                text: 'Nakit: ${stats.cashTotal}₺',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white.withOpacity(0.9),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w400,
                                 ),
                               ),
                             ],
@@ -194,6 +210,7 @@ class _ChartSectionState extends State<ChartSection> {
                           showTitles: true,
                           reservedSize: 32,
                           getTitlesWidget: (double value, TitleMeta meta) {
+                            if (value == meta.max) return const SizedBox.shrink();
                             return Text(
                               value.toInt().toString(),
                               style: GoogleFonts.poppins(

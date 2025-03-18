@@ -10,139 +10,43 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
 
   ReportsNotifier(this.ref) : super(const ReportsState());
 
+  DateTime _getAdjustedDateTime(DateTime date) {
+    // Eğer saat 00:00 ile 05:59 arasındaysa, bir önceki güne ait sayılır
+    if (date.hour < 6) {
+      return date.subtract(const Duration(days: 1));
+    }
+    return date;
+  }
+
   Future<void> fetchPastBillItemsAndCalculate(String period) async {
     try {
       final reportService = ref.read(reportServiceProvider);
       final responseData = await reportService.fetchPastBillItems();
 
       final DateTime now = DateTime.now();
-      
-      // Gün başlangıç ve bitiş zamanlarını al
-      final String? startTimeStr = await _settingsService.getDayStartTime();
-      final String? endTimeStr = await _settingsService.getDayEndTime();
-      
-      // Varsayılan zamanları ayarla
-      final startTimeParts = startTimeStr?.split(' ') ?? ['00:00'];
-      final endTimeParts = endTimeStr?.split(' ') ?? ['23:59'];
-      
-      // Saat ve dakika değerlerini ayır
-      final startHourMinute = startTimeParts[0].split(':');
-      final endHourMinute = endTimeParts[0].split(':');
-      
-      final dayStart = DateTime(
-        now.year,
-        now.month,
-        now.day,
-        int.parse(startHourMinute[0]),
-        int.parse(startHourMinute[1]),
-      );
-      
-      final bool isEndTimeNextDay = endTimeParts.length > 1 && endTimeParts[1] == '(+1)';
-      
-      final dayEnd = DateTime(
-        now.year,
-        now.month,
-        now.day + (isEndTimeNextDay ? 1 : 0),
-        int.parse(endHourMinute[0]),
-        int.parse(endHourMinute[1]),
-      );
+      // Şu anki zamanı gün başlangıcına göre ayarla
+      final DateTime adjustedNow = _getAdjustedDateTime(now);
 
       // Periyoda göre toplam değerler için filtreleme
       final List<dynamic> filteredDataForTotals = responseData.where((item) {
         if (item['preparationTime'] == null) return false;
 
         final DateTime itemDate = DateTime.parse(item['preparationTime']);
-        final DateTime itemDayStart = DateTime(
-          itemDate.year,
-          itemDate.month,
-          itemDate.day,
-          dayStart.hour,
-          dayStart.minute,
-        );
-
-        DateTime itemDayEnd;
-        if (isEndTimeNextDay) {
-          // Eğer gün sonu ertesi güne sarkıyorsa, bitiş zamanını ertesi güne ayarla
-          final nextDay = itemDate.add(const Duration(days: 1));
-          itemDayEnd = DateTime(
-            nextDay.year,
-            nextDay.month,
-            nextDay.day,
-            dayEnd.hour,
-            dayEnd.minute,
-          );
-        } else {
-          itemDayEnd = DateTime(
-            itemDate.year,
-            itemDate.month,
-            itemDate.day,
-            dayEnd.hour,
-            dayEnd.minute,
-          );
-        }
+        final DateTime adjustedItemDate = _getAdjustedDateTime(itemDate);
 
         switch (period) {
           case 'Günlük':
-            // Bugünün başlangıç ve bitiş zamanlarını hesapla
-            final DateTime todayStart = DateTime(
-              now.year,
-              now.month,
-              now.day,
-              dayStart.hour,
-              dayStart.minute,
-            );
-            final DateTime todayEnd = isEndTimeNextDay
-                ? DateTime(
-                    now.year,
-                    now.month,
-                    now.day + 1,
-                    dayEnd.hour,
-                    dayEnd.minute,
-                  )
-                : DateTime(
-                    now.year,
-                    now.month,
-                    now.day,
-                    dayEnd.hour,
-                    dayEnd.minute,
-                  );
-            return itemDate.isAfter(todayStart) && itemDate.isBefore(todayEnd);
+            return adjustedItemDate.year == adjustedNow.year &&
+                   adjustedItemDate.month == adjustedNow.month &&
+                   adjustedItemDate.day == adjustedNow.day;
 
           case 'Haftalık':
-            final difference = now.difference(itemDate).inDays;
-            if (difference > 7) return false;
-
-            // Her gün için başlangıç ve bitiş zamanlarını kontrol et
-            final itemDayStart = DateTime(
-              itemDate.year,
-              itemDate.month,
-              itemDate.day,
-              dayStart.hour,
-              dayStart.minute,
-            );
-            final itemDayEnd = isEndTimeNextDay
-                ? DateTime(
-                    itemDate.year,
-                    itemDate.month,
-                    itemDate.day + 1,
-                    dayEnd.hour,
-                    dayEnd.minute,
-                  )
-                : DateTime(
-                    itemDate.year,
-                    itemDate.month,
-                    itemDate.day,
-                    dayEnd.hour,
-                    dayEnd.minute,
-                  );
-            return itemDate.isAfter(itemDayStart) && itemDate.isBefore(itemDayEnd);
+            final difference = adjustedNow.difference(adjustedItemDate).inDays;
+            return difference <= 7;
 
           case 'Aylık':
-            final bool isSameMonth =
-                itemDate.year == now.year && itemDate.month == now.month;
-            if (!isSameMonth) return false;
-
-            return itemDate.isAfter(itemDayStart) && itemDate.isBefore(itemDayEnd);
+            return adjustedItemDate.year == adjustedNow.year &&
+                   adjustedItemDate.month == adjustedNow.month;
 
           default:
             return true;
@@ -154,36 +58,11 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
         if (item['preparationTime'] == null) return false;
 
         final DateTime itemDate = DateTime.parse(item['preparationTime']);
-        final difference = now.difference(itemDate).inDays;
+        final DateTime adjustedItemDate = _getAdjustedDateTime(itemDate);
+        final difference = adjustedNow.difference(adjustedItemDate).inDays;
 
         // Son 30 günü kontrol et
-        if (difference > 30) return false;
-
-        // Gün başı ve sonu kontrolü
-        final DateTime itemDayStart = DateTime(
-          itemDate.year,
-          itemDate.month,
-          itemDate.day,
-          dayStart.hour,
-          dayStart.minute,
-        );
-        final DateTime itemDayEnd = isEndTimeNextDay
-            ? DateTime(
-                itemDate.year,
-                itemDate.month,
-                itemDate.day + 1,
-                dayEnd.hour,
-                dayEnd.minute,
-              )
-            : DateTime(
-                itemDate.year,
-                itemDate.month,
-                itemDate.day,
-                dayEnd.hour,
-                dayEnd.minute,
-              );
-
-        return itemDate.isAfter(itemDayStart) && itemDate.isBefore(itemDayEnd);
+        return difference <= 30;
       }).toList();
 
       // Toplam değerler için hesaplama
@@ -197,6 +76,7 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
         final price = (item['price'] as num).toInt();
         totalRevenues += price;
 
+        // Giriş kategorisinde olmayan itemları say
         if (item['category'] != 'Giriş') {
           totalOrder++;
         }
@@ -222,7 +102,7 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
 
       // Son 30 günün tarihlerini oluştur
       for (int i = 0; i < 30; i++) {
-        final date = now.subtract(Duration(days: i));
+        final date = adjustedNow.subtract(Duration(days: i));
         final dateStr = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
         dailyStats[dateStr] = DailyStats(
           totalRevenue: 0,
@@ -234,18 +114,12 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
         );
       }
 
-      // Her gün için verileri hesapla
+      // Her işlemi uygun güne ekle
       for (var item in lastThirtyDaysData) {
         if (item['preparationTime'] != null) {
           final DateTime preparationTime = DateTime.parse(item['preparationTime']);
-          
-          // İşlem tarihini belirle (gün sonu ertesi güne sarkıyorsa ve saat gün sonundan sonraysa ertesi güne at)
-          DateTime effectiveDate = preparationTime;
-          if (isEndTimeNextDay && preparationTime.hour < dayStart.hour) {
-            effectiveDate = preparationTime.subtract(const Duration(days: 1));
-          }
-          
-          final dateStr = "${effectiveDate.year}-${effectiveDate.month.toString().padLeft(2, '0')}-${effectiveDate.day.toString().padLeft(2, '0')}";
+          final DateTime adjustedDate = _getAdjustedDateTime(preparationTime);
+          final dateStr = "${adjustedDate.year}-${adjustedDate.month.toString().padLeft(2, '0')}-${adjustedDate.day.toString().padLeft(2, '0')}";
           
           if (dailyStats.containsKey(dateStr)) {
             final price = (item['price'] as num).toInt();

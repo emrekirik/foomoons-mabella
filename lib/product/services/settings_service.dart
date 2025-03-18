@@ -76,7 +76,7 @@ class SettingsService {
 
   Future<DateTime> getStartDateTime(DateTime date) async {
     final startTime = await getDayStartTime();
-    final parts = startTime.split(' ')[0].split(':'); // (+1) varsa yoksay
+    final parts = startTime.split(':');
     return DateTime(
       date.year,
       date.month,
@@ -88,16 +88,13 @@ class SettingsService {
 
   Future<DateTime> getEndDateTime(DateTime date) async {
     final endTime = await getDayEndTime();
-    final parts = endTime.split(' ');
-    final timeParts = parts[0].split(':');
-    final isNextDay = parts.length > 1 && parts[1] == '(+1)';
-    
+    final parts = endTime.split(':');
     return DateTime(
       date.year,
       date.month,
-      date.day + (isNextDay ? 1 : 0),
-      int.parse(timeParts[0]),
-      int.parse(timeParts[1]),
+      date.day,
+      int.parse(parts[0]),
+      int.parse(parts[1]),
     );
   }
 } 
