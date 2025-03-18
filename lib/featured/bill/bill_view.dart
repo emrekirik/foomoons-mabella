@@ -42,6 +42,8 @@ class _BillViewState extends ConsumerState<BillView>
 
   final Map<String, AnimationController> _animationControllers = {};
   bool _isPrinting = false;
+  // Set to track newly added items for animation
+  final Set<int> _newlyAddedItems = {};
 
   // Öğe seçim durumunu değiştiren metod
   void toggleItemSelection(int itemId) {
@@ -106,6 +108,36 @@ class _BillViewState extends ConsumerState<BillView>
         }
       },
     );
+    
+    // Listen for changes in the bill to track newly added items
+    ref.listenManual(tablesProvider, (previous, next) {
+      if (previous != null) {
+        final prevItems = previous.getTableBill(widget.tableId);
+        final currItems = next.getTableBill(widget.tableId);
+        
+        if (currItems.length > prevItems.length) {
+          // Find newly added items
+          for (final item in currItems) {
+            if (!prevItems.any((prevItem) => prevItem.id == item.id) && 
+                item.id != null && 
+                item.isAmount != true) {
+              setState(() {
+                _newlyAddedItems.add(item.id!);
+              });
+              
+              // Remove from newly added items after animation completes
+              Future.delayed(const Duration(milliseconds: 800), () {
+                if (mounted) {
+                  setState(() {
+                    _newlyAddedItems.remove(item.id);
+                  });
+                }
+              });
+            }
+          }
+        }
+      }
+    });
   }
 
   @override
@@ -546,13 +578,7 @@ class _BillViewState extends ConsumerState<BillView>
                                           ),
                                         ),
                                         Expanded(
-                                          child: ListView.separated(
-                                            separatorBuilder:
-                                                (context, index) =>
-                                                    const Divider(
-                                              indent: 10,
-                                              endIndent: 10,
-                                            ),
+                                          child: ListView.builder(
                                             itemCount: tableBill.length,
                                             itemBuilder: (BuildContext context,
                                                 int index) {
@@ -561,176 +587,154 @@ class _BillViewState extends ConsumerState<BillView>
                                               // Her öğe için benzersiz bir key oluştur
                                               final itemKey =
                                                   '${item.id}_${item.piece}';
-
-                                              // Eğer bu öğe için bir controller yoksa oluştur
-                                              if (!_animationControllers
-                                                  .containsKey(itemKey)) {
-                                                _animationControllers[itemKey] =
-                                                    AnimationController(
-                                                  duration: const Duration(
-                                                      milliseconds: 300),
-                                                  vsync: this,
-                                                )..forward();
-                                              }
-
-                                              return SizeTransition(
-                                                sizeFactor: CurvedAnimation(
-                                                  parent: _animationControllers[
-                                                      itemKey]!,
-                                                  curve: Curves.easeOut,
+                                                  
+                                              // Check if this is a newly added item
+                                              final isNewlyAdded = item.id != null && _newlyAddedItems.contains(item.id!);
+                                              
+                                              final Widget contentWidget = Container(
+                                                margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius: BorderRadius.circular(8),
+                                                  border: Border.all(color: Colors.grey.shade100),
                                                 ),
-                                                child: FadeTransition(
-                                                  opacity: CurvedAnimation(
-                                                    parent:
-                                                        _animationControllers[
-                                                            itemKey]!,
-                                                    curve: Curves.easeOut,
-                                                  ),
-                                                  child: ListTile(
-                                                    contentPadding:
-                                                        const EdgeInsets
-                                                            .symmetric(
-                                                            horizontal: 12),
-                                                    leading: isMultiSelectMode ? Checkbox(
-                                                      value: selectedItems.contains(item.id),
-                                                      onChanged: (bool? value) {
-                                                        if (item.id != null) {
-                                                          toggleItemSelection(item.id!);
-                                                        }
-                                                      },
-                                                      activeColor: Colors.orange,
-                                                    ) : null,
-                                                    title: Text(
-                                                      item.title ?? '',
-                                                      style: const TextStyle(
-                                                        fontSize: 14,
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                      ),
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      maxLines: 1,
-                                                    ),
-                                                    subtitle: Row(
-                                                      children: [
-                                                        Expanded(
-                                                          child: Row(
-                                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                            children: [
-                                                              // Sol taraftaki bilgiler
-                                                              Row(
-                                                                children: [
+                                                child: Padding(
+                                                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                                                  child: Row(
+                                                    children: [
+                                                      // Checkbox (multiselect mode)
+                                                      if (isMultiSelectMode)
+                                                        Transform.scale(
+                                                          scale: 0.9,
+                                                          child: Checkbox(
+                                                            value: selectedItems.contains(item.id),
+                                                            onChanged: (bool? value) {
+                                                              if (item.id != null) {
+                                                                toggleItemSelection(item.id!);
+                                                              }
+                                                            },
+                                                            activeColor: Colors.orange,
+                                                            shape: RoundedRectangleBorder(
+                                                              borderRadius: BorderRadius.circular(4),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      
+                                                      // Main content
+                                                      Expanded(
+                                                        child: Column(
+                                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                                          children: [
+                                                            // Item title with status badge if paid
+                                                            Row(
+                                                              children: [
+                                                                Expanded(
+                                                                  child: Text(
+                                                                    item.title ?? '',
+                                                                    style: const TextStyle(
+                                                                      fontSize: 14,
+                                                                      fontWeight: FontWeight.w600,
+                                                                    ),
+                                                                    overflow: TextOverflow.ellipsis,
+                                                                    maxLines: 1,
+                                                                  ),
+                                                                ),
+                                                                if (item.status == 'ödendi')
                                                                   Container(
                                                                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                                                     decoration: BoxDecoration(
-                                                                      color: Colors.grey.shade100,
+                                                                      color: Colors.green.shade50,
                                                                       borderRadius: BorderRadius.circular(4),
+                                                                      border: Border.all(color: Colors.green.shade100),
                                                                     ),
-                                                                    child: Text(
+                                                                    child: Row(
+                                                                      mainAxisSize: MainAxisSize.min,
+                                                                      children: [
+                                                                        Icon(
+                                                                          Icons.check_circle,
+                                                                          size: 10,
+                                                                          color: Colors.green.shade700,
+                                                                        ),
+                                                                        const SizedBox(width: 3),
+                                                                        Text(
+                                                                          'Ödendi',
+                                                                          style: TextStyle(
+                                                                            fontSize: 10,
+                                                                            fontWeight: FontWeight.w500,
+                                                                            color: Colors.green.shade700,
+                                                                          ),
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                  ),
+                                                              ],
+                                                            ),
+                                                            
+                                                            const SizedBox(height: 6),
+                                                            
+                                                            // Item details row
+                                                            Row(
+                                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                              children: [
+                                                                // Left side details (quantity and prep time)
+                                                                Row(
+                                                                  children: [
+                                                                    Text(
                                                                       '${item.piece ?? 1} adet',
                                                                       style: TextStyle(
                                                                         fontSize: 12,
-                                                                        color: Colors.grey.shade700,
+                                                                        color: Colors.grey.shade600,
                                                                       ),
                                                                     ),
-                                                                  ),
-                                                                  if (item.preparationTime != null) ...[
-                                                                    const SizedBox(width: 8),
-                                                                    Container(
-                                                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                                                      decoration: BoxDecoration(
-                                                                        color: Colors.blue.shade50,
-                                                                        borderRadius: BorderRadius.circular(4),
-                                                                      ),
-                                                                      child: Row(
+                                                                    if (item.preparationTime != null) ...[
+                                                                      const SizedBox(width: 8),
+                                                                      Row(
                                                                         mainAxisSize: MainAxisSize.min,
                                                                         children: [
                                                                           Icon(
                                                                             Icons.access_time,
                                                                             size: 12,
-                                                                            color: Colors.blue.shade700,
+                                                                            color: Colors.grey.shade500,
                                                                           ),
-                                                                          const SizedBox(width: 4),
+                                                                          const SizedBox(width: 3),
                                                                           Text(
                                                                             _formatPreparationTime(item.preparationTime!),
                                                                             style: TextStyle(
                                                                               fontSize: 12,
-                                                                              color: Colors.blue.shade700,
+                                                                              color: Colors.grey.shade600,
                                                                             ),
                                                                           ),
                                                                         ],
                                                                       ),
-                                                                    ),
+                                                                    ],
                                                                   ],
-                                                                ],
-                                                              ),
-                                                              // Sağ taraftaki tutar
-                                                              Container(
-                                                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                                                decoration: BoxDecoration(
-                                                                  color: Colors.orange.shade50,
-                                                                  borderRadius: BorderRadius.circular(4),
                                                                 ),
-                                                                child: Text(
+                                                                
+                                                                // Price
+                                                                Text(
                                                                   '₺${(item.price ?? 0) * (item.piece ?? 1)}',
                                                                   style: TextStyle(
                                                                     fontSize: 12,
-                                                                    color: Colors.orange.shade800,
                                                                     fontWeight: FontWeight.w500,
+                                                                    color: Colors.grey.shade800,
                                                                   ),
                                                                 ),
-                                                              ),
-                                                            ],
-                                                          ),
+                                                              ],
+                                                            ),
+                                                          ],
                                                         ),
-                                                      ],
-                                                    ),
-                                                    trailing: Row(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      children: [
-                                                        item.status == 'ödendi'
-                                                            ? Container(
-                                                                padding: const EdgeInsets.symmetric(
-                                                                    horizontal: 8,
-                                                                    vertical: 4),
-                                                                decoration: BoxDecoration(
-                                                                    color: Colors.green.withOpacity(0.1),
-                                                                    borderRadius: BorderRadius.circular(12),
-                                                                    border: Border.all(
-                                                                        color: Colors.green.withOpacity(0.5),
-                                                                        width: 1)),
-                                                                child: const Row(
-                                                                  mainAxisSize: MainAxisSize.min,
-                                                                  children: [
-                                                                    Icon(
-                                                                      Icons.check_circle,
-                                                                      size: 12,
-                                                                      color: Colors.green,
-                                                                    ),
-                                                                    SizedBox(width: 4),
-                                                                    Text(
-                                                                      'Ödendi',
-                                                                      style: TextStyle(
-                                                                          fontSize: 12,
-                                                                          fontWeight: FontWeight.w500,
-                                                                          color: Colors.green),
-                                                                    ),
-                                                                  ],
-                                                                ),
-                                                              )
-                                                            : const SizedBox(),
-                                                        if (!isMultiSelectMode)
+                                                      ),
+                                                      
+                                                      // Delete button (when not in multiselect mode)
+                                                      if (!isMultiSelectMode)
                                                         IconButton(
-                                                          icon: const Icon(
-                                                            Icons
-                                                                .remove_circle_outline,
-                                                            size: 20,
+                                                          icon: Icon(
+                                                            Icons.delete_outline,
+                                                            size: 18,
+                                                            color: Colors.red.shade300,
                                                           ),
-                                                          padding:
-                                                              EdgeInsets.zero,
-                                                          constraints:
-                                                              const BoxConstraints(),
+                                                          padding: EdgeInsets.zero,
+                                                          constraints: const BoxConstraints(),
                                                           onPressed: () async {
                                                             // Silme işlemi için onay dialog'u göster
                                                             final shouldDelete =
@@ -753,7 +757,7 @@ class _BillViewState extends ConsumerState<BillView>
                                                                   padding:
                                                                       const EdgeInsets
                                                                           .all(
-                                                                          32),
+                                                                      32),
                                                                   decoration:
                                                                       BoxDecoration(
                                                                     color: Colors
@@ -905,11 +909,32 @@ class _BillViewState extends ConsumerState<BillView>
                                                             }
                                                           },
                                                         ),
-                                                      ],
-                                                    ),
+                                                    ],
                                                   ),
                                                 ),
                                               );
+                                              
+                                              // Apply slide animation only for newly added items
+                                              if (isNewlyAdded) {
+                                                return TweenAnimationBuilder<Offset>(
+                                                  tween: Tween<Offset>(
+                                                    begin: const Offset(-1, 0),
+                                                    end: Offset.zero,
+                                                  ),
+                                                  duration: const Duration(milliseconds: 300),
+                                                  curve: Curves.easeOutCubic,
+                                                  builder: (context, offset, child) {
+                                                    return FractionalTranslation(
+                                                      translation: offset,
+                                                      child: child,
+                                                    );
+                                                  },
+                                                  child: contentWidget,
+                                                );
+                                              }
+                                              
+                                              // Return without animation for existing items
+                                              return contentWidget;
                                             },
                                           ),
                                         ),

@@ -178,7 +178,7 @@ class TableService {
         "isAmount": item.isAmount ?? false,
         "isCredit": item.isCredit ?? false,
         "piece": item.piece ?? 1,
-        "preparationTime": item.createdAt?.toIso8601String(),
+        "preparationTime": item.createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
         "price": item.price,
         "status": isMerging ? item.status : 'hazırlanıyor',
         "title": item.title,
