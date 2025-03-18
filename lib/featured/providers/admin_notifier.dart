@@ -132,6 +132,7 @@ class AdminNotifier extends StateNotifier<HomeState> with FirebaseUtility {
                 status: status,
                 isAmount: null,
                 isCredit: null,
+                createdAt: order.orderDate?.toDate(),
               );
 
               await tableService.addItemToBill(menuItem);

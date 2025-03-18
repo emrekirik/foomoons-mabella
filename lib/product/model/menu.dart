@@ -10,7 +10,7 @@ class Menu with EquatableMixin, IdModel {
   @override
   final int? id;
   final String? status;
-  // final int? preparationTime;
+  final DateTime? preparationTime;
   final String? category;
   final int? stock;
   final int? piece; // Yeni eklenen özellik
@@ -21,6 +21,7 @@ class Menu with EquatableMixin, IdModel {
   final String? orderType; // Added orderType field
   final String? customerMessage; // Added customerMessage field
   final bool? isVisibleInMenu;
+  final DateTime? createdAt;
 
   const Menu(
       {this.title,
@@ -28,7 +29,7 @@ class Menu with EquatableMixin, IdModel {
       this.image,
       this.id,
       this.status = 'yeni',
-      // this.preparationTime,
+      this.preparationTime,
       this.category,
       this.stock,
       this.piece, // Constructor'a ekleyin
@@ -38,7 +39,8 @@ class Menu with EquatableMixin, IdModel {
       this.billId,
       this.orderType,
       this.customerMessage,
-      this.isVisibleInMenu}); // Added isVisibleInMenu to constructor
+      this.isVisibleInMenu,
+      this.createdAt}); // Added createdAt to constructor
 
   @override
   List<Object?> get props => [
@@ -46,7 +48,7 @@ class Menu with EquatableMixin, IdModel {
         price,
         image,
         status,
-        // preparationTime,
+        preparationTime,
         category,
         id,
         stock,
@@ -57,7 +59,8 @@ class Menu with EquatableMixin, IdModel {
         billId,
         orderType,
         customerMessage,
-        isVisibleInMenu
+        isVisibleInMenu,
+        createdAt
       ];
 
   @override
@@ -69,7 +72,7 @@ class Menu with EquatableMixin, IdModel {
         other.price == price &&
         other.image == image &&
         other.status == status &&
-        // other.preparationTime == preparationTime &&
+        other.preparationTime == preparationTime &&
         other.category == category &&
         other.id == id &&
         other.stock == stock &&
@@ -79,7 +82,8 @@ class Menu with EquatableMixin, IdModel {
         other.billId == billId &&
         other.orderType == orderType &&
         other.customerMessage == customerMessage &&
-        other.isVisibleInMenu == isVisibleInMenu;
+        other.isVisibleInMenu == isVisibleInMenu &&
+        other.createdAt == createdAt;
   }
 
   @override
@@ -88,7 +92,7 @@ class Menu with EquatableMixin, IdModel {
         price.hashCode ^
         image.hashCode ^
         status.hashCode ^
-        // preparationTime.hashCode ^
+        preparationTime.hashCode ^
         category.hashCode ^
         id.hashCode ^
         stock.hashCode ^
@@ -98,7 +102,8 @@ class Menu with EquatableMixin, IdModel {
         billId.hashCode ^
         orderType.hashCode ^
         customerMessage.hashCode ^
-        isVisibleInMenu.hashCode;
+        isVisibleInMenu.hashCode ^
+        createdAt.hashCode;
   }
 
   /// Copy this instance with new values, while preserving existing ones if not provided
@@ -107,7 +112,7 @@ class Menu with EquatableMixin, IdModel {
     double? price,
     String? image,
     String? status,
-    int? preparationTime,
+    DateTime? preparationTime,
     String? category,
     int? id,
     int? stock,
@@ -119,13 +124,14 @@ class Menu with EquatableMixin, IdModel {
     String? orderType,
     String? customerMessage,
     bool? isVisibleInMenu,
+    DateTime? createdAt,
   }) {
     return Menu(
         title: title ?? this.title,
         price: price ?? this.price,
         image: image ?? this.image,
         status: status ?? this.status,
-        // preparationTime: preparationTime ?? this.preparationTime,
+        preparationTime: preparationTime ?? this.preparationTime,
         category: category ?? this.category,
         id: id ?? this.id,
         stock: stock ?? this.stock,
@@ -136,7 +142,8 @@ class Menu with EquatableMixin, IdModel {
         billId: billId ?? this.billId,
         orderType: orderType ?? this.orderType,
         customerMessage: customerMessage ?? this.customerMessage,
-        isVisibleInMenu: isVisibleInMenu ?? this.isVisibleInMenu);
+        isVisibleInMenu: isVisibleInMenu ?? this.isVisibleInMenu,
+        createdAt: createdAt ?? this.createdAt);
   }
 
   /// Convert this Menu instance to a JSON map
@@ -147,7 +154,7 @@ class Menu with EquatableMixin, IdModel {
       'price': price,
       'image': image,
       'status': status,
-      // 'preparationTime': preparationTime,
+      'preparationTime': preparationTime?.toIso8601String(),
       'category': category,
       'stock': stock,
       'piece': piece,
@@ -157,7 +164,8 @@ class Menu with EquatableMixin, IdModel {
       'billId': billId,
       'orderType': orderType,
       'customerMessage': customerMessage,
-      'isVisibleInMenu': isVisibleInMenu
+      'isVisibleInMenu': isVisibleInMenu,
+      'createdAt': createdAt?.toIso8601String()
     };
   }
 
@@ -169,9 +177,7 @@ class Menu with EquatableMixin, IdModel {
         price: json['price'] as double?,
         image: json['image'] as String?,
         status: json['status'] as String?,
-        // preparationTime: json['preparationTime'] != null
-        //     ? (json['preparationTime'] as int)
-        //     : null,
+        preparationTime: json['preparationTime'] != null ? DateTime.parse(json['preparationTime']) : null,
         category: json['category'] as String?,
         stock: _parseToInt(json['stock']),
         piece: _parseToInt(json['piece']),
@@ -181,7 +187,8 @@ class Menu with EquatableMixin, IdModel {
         billId: _parseToInt(json['billId']),
         orderType: json['orderType'] as String?,
         customerMessage: json['customerMessage'] as String?,
-        isVisibleInMenu: json['isVisibleInMenu'] as bool?);
+        isVisibleInMenu: json['isVisibleInMenu'] as bool?,
+        createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null);
   }
 
   /// Helper method to safely parse price values to int
@@ -202,6 +209,7 @@ class Menu with EquatableMixin, IdModel {
         'price: $price, '
         'image: $image, '
         'status: $status, '
+        'preparationTime: $preparationTime, '
         'category: $category, '
         'id: $id, '
         'stock: $stock, '
@@ -212,6 +220,7 @@ class Menu with EquatableMixin, IdModel {
         'billId: $billId, '
         'orderType: $orderType, '
         'customerMessage: $customerMessage, '
-        'isVisibleInMenu: $isVisibleInMenu)';
+        'isVisibleInMenu: $isVisibleInMenu, '
+        'createdAt: $createdAt)';
   }
 }

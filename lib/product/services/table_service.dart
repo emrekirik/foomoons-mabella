@@ -147,6 +147,7 @@ class TableService {
             isCredit: item['isCredit'] as bool?,
             isAmount: item['isAmount'] as bool?,
             billId: item['billId'] as int?,
+            preparationTime: item['preparationTime'] != null ? DateTime.parse(item['preparationTime']) : null,
           );
           return menuItem;
         }).toList();
@@ -177,7 +178,7 @@ class TableService {
         "isAmount": item.isAmount ?? false,
         "isCredit": item.isCredit ?? false,
         "piece": item.piece ?? 1,
-        "preparationTime": DateTime.now().toIso8601String(),
+        "preparationTime": item.createdAt?.toIso8601String(),
         "price": item.price,
         "status": isMerging ? item.status : 'hazırlanıyor',
         "title": item.title,
@@ -206,6 +207,7 @@ class TableService {
         isAmount: addedItemData['isAmount'] ?? item.isAmount ?? false,
         tableId: item.tableId,
         billId: billId,
+        preparationTime: addedItemData['preparationTime'] != null ? DateTime.parse(addedItemData['preparationTime']) : DateTime.now(),
       );
     } catch (e) {
       throw Exception('Ürün adisyona eklenirken hata oluştu: $e');

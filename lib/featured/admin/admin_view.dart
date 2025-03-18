@@ -43,9 +43,10 @@ class _AdminViewState extends ConsumerState<AdminView> {
   List<Map<String, dynamic>> groupOrders(List orders) {
     // Siparişleri masa ve zaman bazında gruplama
     Map<String, List> groupedByTable = {};
-    
+
     for (var order in orders) {
-      String tableKey = '${order.tableTitle}_${order.orderDate?.toDate().toString().substring(0, 16)}';
+      String tableKey =
+          '${order.tableTitle}_${order.orderDate?.toDate().toString().substring(0, 16)}';
       if (!groupedByTable.containsKey(tableKey)) {
         groupedByTable[tableKey] = [];
       }
@@ -53,11 +54,12 @@ class _AdminViewState extends ConsumerState<AdminView> {
     }
 
     // Grupları listeye çevirme
-    List<Map<String, dynamic>> groupedOrders = groupedByTable.entries.map((entry) {
+    List<Map<String, dynamic>> groupedOrders =
+        groupedByTable.entries.map((entry) {
       // Gruptaki tüm siparişlerin sender bilgisini al
       String? sender = entry.value.first.sender;
       bool allSameSender = entry.value.every((order) => order.sender == sender);
-      
+
       return {
         'tableTitle': entry.value.first.tableTitle,
         'orderDate': entry.value.first.orderDate,
@@ -87,7 +89,8 @@ class _AdminViewState extends ConsumerState<AdminView> {
         preparingOrders.where((order) => order.orderType == 'Bar').toList();
     final pastOrders = orders
         .where((order) =>
-            (order.status == 'teslim edildi' || order.status == 'iptal edildi') &&
+            (order.status == 'teslim edildi' ||
+                order.status == 'iptal edildi') &&
             order.orderDate != null &&
             DateTime.now().difference(order.orderDate!.toDate()).inDays <= 2)
         .toList();
@@ -282,32 +285,34 @@ class _AdminViewState extends ConsumerState<AdminView> {
     );
   }
 
-  Widget _buildGroupedOrdersList(List orders, String nextStatus, String status) {
+  Widget _buildGroupedOrdersList(
+      List orders, String nextStatus, String status) {
     final groupedOrders = groupOrders(orders);
-    
+
     return ListView.separated(
       itemCount: groupedOrders.length,
       padding: const EdgeInsets.all(8),
       separatorBuilder: (context, index) => const SizedBox(height: 12),
-                                        itemBuilder: (context, index) {
+      itemBuilder: (context, index) {
         final group = groupedOrders[index];
         final List groupOrders = group['orders'];
         final String? groupSender = group['sender'];
-        
-                                          return Container(
+
+        return Container(
           padding: const EdgeInsets.all(12),
-                                            decoration: BoxDecoration(
-                                              color: Colors.grey[50],
+          decoration: BoxDecoration(
+            color: Colors.grey[50],
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: Colors.grey.withOpacity(0.1)),
-                                            ),
-                                            child: Column(
+          ),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
+            children: [
               // Masa başlığı ve zaman
               Row(
                 children: [
-                  Icon(Icons.table_restaurant, size: 18, color: Colors.grey[700]),
+                  Icon(Icons.table_restaurant,
+                      size: 18, color: Colors.grey[700]),
                   const SizedBox(width: 8),
                   Text(
                     group['tableTitle'] ?? 'Bilinmiyor',
@@ -319,12 +324,13 @@ class _AdminViewState extends ConsumerState<AdminView> {
                   if (groupSender != null) ...[
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
                         color: Colors.blue[50],
                         borderRadius: BorderRadius.circular(12),
                       ),
-                                                  child: Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
@@ -359,451 +365,593 @@ class _AdminViewState extends ConsumerState<AdminView> {
               ),
               const SizedBox(height: 12),
               // Siparişler listesi
-              ...groupOrders.map((item) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                                                    children: [
-                                                      Expanded(
-                                                        child: Row(
-                                                          children: [
-                          if (item.customerMessage != null && item.customerMessage!.trim().isNotEmpty) ...[
-                            GestureDetector(
-                              onTap: () => _showMessageDialog(context, item.customerMessage!),
-                              child: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: Colors.orange[50],
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Icon(
-                                  Icons.comment,
-                                  size: 16,
-                                  color: Colors.orange[700],
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                          ],
-                          Text(
-                            '${item.piece}x',
-                            style: GoogleFonts.poppins(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey[700],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                                                            Expanded(
-                            child: Text(
-                                                                item.title ?? '',
-                              style: GoogleFonts.poppins(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                                              ),
-                              overflow: TextOverflow.ellipsis,
-                                                            ),
-                          ),
-                          if (item.sender != null && item.sender != groupSender)
-                                                              Container(
-                                                                margin: const EdgeInsets.only(left: 8),
-                                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                                                decoration: BoxDecoration(
-                                                                  color: Colors.blue[50],
-                                                                  borderRadius: BorderRadius.circular(12),
-                                                                ),
-                                                                child: Row(
-                                                                  mainAxisSize: MainAxisSize.min,
-                                                                  children: [
-                                                                    Icon(
-                                                                      Icons.person_outline,
-                                                                      size: 14,
-                                                                      color: Colors.blue[700],
-                                                                    ),
-                                                                    const SizedBox(width: 4),
-                                                                    Text(
-                                                                      item.sender!,
-                                                                      style: TextStyle(
-                                                                        fontSize: 12,
-                                                                        color: Colors.blue[700],
-                                                                        fontWeight: FontWeight.w500,
-                                                                      ),
-                                                                    ),
-                                                                  ],
-                                                                ),
-                                                              ),
-                          if (status == 'hazır') ...[
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: item.status == 'teslim edildi' ? Colors.green[50] : Colors.red[50],
-                                borderRadius: BorderRadius.circular(12),
-                              ),
+              ...groupOrders
+                  .map((item) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Row(
+                          children: [
+                            Expanded(
                               child: Row(
-                                mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(
-                                    item.status == 'teslim edildi' ? Icons.check_circle_outline : Icons.cancel_outlined,
-                                    size: 14,
-                                    color: item.status == 'teslim edildi' ? Colors.green[700] : Colors.red[700],
-                                  ),
-                                  const SizedBox(width: 4),
+                                  if (item.customerMessage != null &&
+                                      item.customerMessage!
+                                          .trim()
+                                          .isNotEmpty) ...[
+                                    GestureDetector(
+                                      onTap: () => _showMessageDialog(
+                                          context, item.customerMessage!),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(4),
+                                        decoration: BoxDecoration(
+                                          color: Colors.orange[50],
+                                          borderRadius:
+                                              BorderRadius.circular(6),
+                                        ),
+                                        child: Icon(
+                                          Icons.comment,
+                                          size: 16,
+                                          color: Colors.orange[700],
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                  ],
                                   Text(
-                                    item.status ?? '',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: item.status == 'teslim edildi' ? Colors.green[700] : Colors.red[700],
-                                      fontWeight: FontWeight.w500,
+                                    '${item.piece}x',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.grey[700],
                                     ),
                                   ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      item.title ?? '',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  if (item.sender != null &&
+                                      item.sender != groupSender)
+                                    Container(
+                                      margin: const EdgeInsets.only(left: 8),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: Colors.blue[50],
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.person_outline,
+                                            size: 14,
+                                            color: Colors.blue[700],
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            item.sender!,
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.blue[700],
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  if (status == 'hazır') ...[
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: item.status == 'teslim edildi'
+                                            ? Colors.green[50]
+                                            : Colors.red[50],
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            item.status == 'teslim edildi'
+                                                ? Icons.check_circle_outline
+                                                : Icons.cancel_outlined,
+                                            size: 14,
+                                            color:
+                                                item.status == 'teslim edildi'
+                                                    ? Colors.green[700]
+                                                    : Colors.red[700],
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            item.status ?? '',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color:
+                                                  item.status == 'teslim edildi'
+                                                      ? Colors.green[700]
+                                                      : Colors.red[700],
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
-                                                            ],
-                                                          ],
-                                                        ),
-                                                      ),
-                    if (status == 'hazırlanıyor') ...[
-                      const SizedBox(width: 8),
-                      Row(
-                                                          mainAxisSize: MainAxisSize.min,
-                                                          children: [
-                          IconButton(
-                            style: IconButton.styleFrom(
-                              backgroundColor: Colors.red[50],
-                              minimumSize: const Size(36, 36),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            icon: Icon(
-                              Icons.close,
-                              color: Colors.red[600],
-                              size: 18,
-                            ),
-                            onPressed: isProcessing
-                                ? null
-                                : () async {
-                                    final bool? confirm = await showDialog<bool>(
-                                                                    context: context,
-                                                                    builder: (BuildContext context) {
-                                                                      return Dialog(
-                                                                        shape: RoundedRectangleBorder(
-                                                                          borderRadius: BorderRadius.circular(20),
-                                                                        ),
-                                                                        child: Container(
-                                                                          width: 400,
-                                                                          padding: const EdgeInsets.all(32),
-                                                                          decoration: BoxDecoration(
-                                                                            color: Colors.white,
-                                                                            borderRadius: BorderRadius.circular(20),
-                                                                          ),
-                                                                          child: Column(
-                                                                            mainAxisSize: MainAxisSize.min,
-                                                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                                                            children: [
-                                                                              Row(
-                                                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                                children: [
-                                                                                  Text(
-                                                      'Sipariş İptali',
-                                                                                    style: GoogleFonts.poppins(
-                                                                                      fontSize: 24,
-                                                                                      fontWeight: FontWeight.w600,
-                                                                                      color: Colors.black,
-                                                                                      letterSpacing: -0.5,
-                                                                                    ),
-                                                                                  ),
-                                                                                  IconButton(
-                                                      onPressed: () => Navigator.pop(context, false),
-                                                                                    icon: Icon(
-                                                                                      Icons.close,
-                                                                                      color: Colors.grey[400],
-                                                                                      size: 24,
-                                                                                    ),
-                                                                                  ),
-                                                                                ],
-                                                                              ),
-                                                                              const SizedBox(height: 24),
-                                                                              Text(
-                                                  'Bu siparişi iptal etmek istediğinizden emin misiniz?',
-                                                                                style: GoogleFonts.poppins(
-                                                                                  fontSize: 16,
-                                                                                  color: Colors.grey[700],
-                                                                                ),
-                                                                              ),
-                                                                              const SizedBox(height: 32),
-                                                                              Row(
-                                                                                mainAxisAlignment: MainAxisAlignment.end,
-                                                                                children: [
-                                                    TextButton(
-                                                      onPressed: () => Navigator.pop(context, false),
-                                                      child: Text(
-                                                        'Vazgeç',
-                                                        style: GoogleFonts.poppins(
-                                                          fontSize: 16,
-                                                          color: Colors.grey[600],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    const SizedBox(width: 16),
-                                                                                  ElevatedButton(
-                                                                                    style: ElevatedButton.styleFrom(
-                                                        backgroundColor: Colors.red,
-                                                                                      padding: const EdgeInsets.symmetric(
-                                                                                        horizontal: 24,
-                                                                                        vertical: 12,
-                                                                                      ),
-                                                                                      shape: RoundedRectangleBorder(
-                                                                                        borderRadius: BorderRadius.circular(12),
-                                                                                      ),
-                                                                                    ),
-                                                      onPressed: () => Navigator.pop(context, true),
-                                                                                    child: Text(
-                                                        'İptal Et',
-                                                                                      style: GoogleFonts.poppins(
-                                                                                        fontSize: 16,
-                                                                                        color: Colors.white,
-                                                                                      ),
-                                                                                    ),
-                                                                                  ),
-                                                                                ],
-                                                                              ),
-                                                                            ],
-                                                                          ),
-                                                                        ),
-                                                                      );
-                                                                    },
-                                                                  );
-
-                                    if (confirm == true && item.id != null) {
-                                      ref.read(adminProvider.notifier).updateOrderStatus(item, 'iptal edildi');
-                                    }
-                                  },
-                          ),
-                          const SizedBox(width: 8),
-                          IconButton(
-                            style: IconButton.styleFrom(
-                              backgroundColor: Colors.green[50],
-                              minimumSize: const Size(36, 36),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            icon: Icon(
-                              Icons.check,
-                              color: Colors.green[600],
-                              size: 18,
-                            ),
-                            onPressed: isProcessing
-                                ? null
-                                : () async {
-                                    if (!mounted) return;
-                                    setState(() {
-                                      isProcessing = true;
-                                    });
-                                    try {
-                                      await ref.read(adminProvider.notifier).updateOrderStatus(item, 'teslim edildi');
-                                      if (mounted) {
-                                        await Future.delayed(const Duration(milliseconds: 500));
-                                      }
-                                    } finally {
-                                      if (mounted) {
-                                        setState(() {
-                                          isProcessing = false;
-                                        });
-                                      }
-                                    }
-                                  },
-                                                      ),
-                                                    ],
+                            if (status == 'hazırlanıyor') ...[
+                              const SizedBox(width: 8),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    style: IconButton.styleFrom(
+                                      backgroundColor: Colors.red[50],
+                                      minimumSize: const Size(36, 36),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                    icon: Icon(
+                                      Icons.close,
+                                      color: Colors.red[600],
+                                      size: 18,
+                                    ),
+                                    onPressed: isProcessing
+                                        ? null
+                                        : () async {
+                                            final bool? confirm =
+                                                await showDialog<bool>(
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                return Dialog(
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            20),
                                                   ),
-                    ],
-                    if (status == 'yeni') ...[
-                      const SizedBox(width: 8),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                                                    children: [
-                          IconButton(
-                            style: IconButton.styleFrom(
-                              backgroundColor: Colors.orange[50],
-                              minimumSize: const Size(36, 36),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            icon: Icon(
-                              Icons.restaurant,
-                              color: Colors.orange[600],
-                              size: 18,
-                            ),
-                            onPressed: isProcessing
-                                ? null
-                                : () async {
-                                    if (item.id != null) {
-                                      await ref.read(adminProvider.notifier).updateOrderStatus(
-                                                                item,
-                                            nextStatus,
-                                            orderType: 'Mutfak',
-                                          );
-                                      await KitchenPrinterService.printKitchenOrder(item.toJson());
-                                    }
-                                  },
-                          ),
-                          const SizedBox(width: 8),
-                          IconButton(
-                            style: IconButton.styleFrom(
-                              backgroundColor: Colors.purple[50],
-                              minimumSize: const Size(36, 36),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            icon: Icon(
-                              Icons.local_bar,
-                              color: Colors.purple[600],
-                              size: 18,
-                            ),
-                            onPressed: isProcessing
-                                ? null
-                                : () async {
-                                    if (item.id != null) {
-                                      await ref.read(adminProvider.notifier).updateOrderStatus(
-                                            item,
-                                            nextStatus,
-                                            orderType: 'Bar',
-                                          );
-                                      await BarPrinterService.printBarOrder(item.toJson());
-                                    }
-                                  },
-                          ),
-                          const SizedBox(width: 8),
-                          IconButton(
-                            style: IconButton.styleFrom(
-                              backgroundColor: Colors.red[50],
-                              minimumSize: const Size(36, 36),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            icon: Icon(
-                              Icons.cancel_outlined,
-                              color: Colors.red[600],
-                              size: 18,
-                            ),
-                            onPressed: isProcessing
-                                ? null
-                                : () async {
-                                    final bool? confirm = await showDialog<bool>(
-                                                                    context: context,
-                                                                    builder: (BuildContext context) {
-                                                                      return Dialog(
-                                                                        shape: RoundedRectangleBorder(
-                                                                          borderRadius: BorderRadius.circular(20),
-                                                                        ),
-                                                                        child: Container(
-                                                                          width: 400,
-                                                                          padding: const EdgeInsets.all(32),
-                                                                          decoration: BoxDecoration(
-                                                                            color: Colors.white,
-                                                                            borderRadius: BorderRadius.circular(20),
-                                                                          ),
-                                                                          child: Column(
-                                                                            mainAxisSize: MainAxisSize.min,
-                                                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                                                            children: [
-                                                                              Row(
-                                                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                                children: [
-                                                                                  Text(
-                                                      'Sipariş İptali',
-                                                                                    style: GoogleFonts.poppins(
-                                                                                      fontSize: 24,
-                                                                                      fontWeight: FontWeight.w600,
-                                                                                      color: Colors.black,
-                                                                                      letterSpacing: -0.5,
-                                                                                    ),
-                                                                                  ),
-                                                                                  IconButton(
-                                                      onPressed: () => Navigator.pop(context, false),
-                                                                                    icon: Icon(
-                                                                                      Icons.close,
-                                                                                      color: Colors.grey[400],
-                                                                                      size: 24,
-                                                                                    ),
-                                                                                  ),
-                                                                                ],
-                                                                              ),
-                                                                              const SizedBox(height: 24),
-                                                                              Text(
-                                                  'Bu siparişi iptal etmek istediğinizden emin misiniz?',
-                                                                                style: GoogleFonts.poppins(
-                                                                                  fontSize: 16,
-                                                                                  color: Colors.grey[700],
-                                                                                ),
-                                                                              ),
-                                                                              const SizedBox(height: 32),
-                                                                              Row(
-                                                                                mainAxisAlignment: MainAxisAlignment.end,
-                                                                                children: [
-                                                    TextButton(
-                                                      onPressed: () => Navigator.pop(context, false),
-                                                      child: Text(
-                                                        'Vazgeç',
-                                                        style: GoogleFonts.poppins(
-                                                          fontSize: 16,
-                                                          color: Colors.grey[600],
-                                                        ),
-                                                      ),
+                                                  child: Container(
+                                                    width: 400,
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            32),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              20),
                                                     ),
-                                                    const SizedBox(width: 16),
-                                                                                  ElevatedButton(
-                                                                                    style: ElevatedButton.styleFrom(
-                                                        backgroundColor: Colors.red,
-                                                                                      padding: const EdgeInsets.symmetric(
-                                                                                        horizontal: 24,
-                                                                                        vertical: 12,
-                                                                                      ),
-                                                                                      shape: RoundedRectangleBorder(
-                                                                                        borderRadius: BorderRadius.circular(12),
-                                                                                      ),
-                                                                                    ),
-                                                      onPressed: () => Navigator.pop(context, true),
-                                                                                    child: Text(
-                                                        'İptal Et',
-                                                                                      style: GoogleFonts.poppins(
-                                                                                        fontSize: 16,
-                                                                                        color: Colors.white,
-                                                                                      ),
-                                                                                    ),
-                                                                                  ),
-                                                                                ],
-                                                                              ),
-                                                                            ],
-                                                                          ),
-                                                                        ),
-                                                                      );
-                                                                    },
-                                                                  );
-
-                                    if (confirm == true && item.id != null) {
-                                      ref.read(adminProvider.notifier).updateOrderStatus(item, 'iptal edildi');
-                                    }
-                                  },
-                          ),
-                        ],
+                                                    child: Column(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Row(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .spaceBetween,
+                                                          children: [
+                                                            Text(
+                                                              'Sipariş İptali',
+                                                              style: GoogleFonts
+                                                                  .poppins(
+                                                                fontSize: 24,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                                color: Colors
+                                                                    .black,
+                                                                letterSpacing:
+                                                                    -0.5,
                                                               ),
-                                                            ],
+                                                            ),
+                                                            IconButton(
+                                                              onPressed: () =>
+                                                                  Navigator.pop(
+                                                                      context,
+                                                                      false),
+                                                              icon: Icon(
+                                                                Icons.close,
+                                                                color: Colors
+                                                                    .grey[400],
+                                                                size: 24,
+                                                              ),
+                                                            ),
                                                           ],
                                                         ),
-              )).toList(),
+                                                        const SizedBox(
+                                                            height: 24),
+                                                        Text(
+                                                          'Bu siparişi iptal etmek istediğinizden emin misiniz?',
+                                                          style: GoogleFonts
+                                                              .poppins(
+                                                            fontSize: 16,
+                                                            color: Colors
+                                                                .grey[700],
+                                                          ),
+                                                        ),
+                                                        const SizedBox(
+                                                            height: 32),
+                                                        Row(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .end,
+                                                          children: [
+                                                            TextButton(
+                                                              onPressed: () =>
+                                                                  Navigator.pop(
+                                                                      context,
+                                                                      false),
+                                                              child: Text(
+                                                                'Vazgeç',
+                                                                style:
+                                                                    GoogleFonts
+                                                                        .poppins(
+                                                                  fontSize: 16,
+                                                                  color: Colors
+                                                                          .grey[
+                                                                      600],
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            const SizedBox(
+                                                                width: 16),
+                                                            ElevatedButton(
+                                                              style:
+                                                                  ElevatedButton
+                                                                      .styleFrom(
+                                                                backgroundColor:
+                                                                    Colors.red,
+                                                                padding:
+                                                                    const EdgeInsets
+                                                                        .symmetric(
+                                                                  horizontal:
+                                                                      24,
+                                                                  vertical: 12,
+                                                                ),
+                                                                shape:
+                                                                    RoundedRectangleBorder(
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              12),
+                                                                ),
+                                                              ),
+                                                              onPressed: () =>
+                                                                  Navigator.pop(
+                                                                      context,
+                                                                      true),
+                                                              child: Text(
+                                                                'İptal Et',
+                                                                style:
+                                                                    GoogleFonts
+                                                                        .poppins(
+                                                                  fontSize: 16,
+                                                                  color: Colors
+                                                                      .white,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            );
+
+                                            if (confirm == true &&
+                                                item.id != null) {
+                                              ref
+                                                  .read(adminProvider.notifier)
+                                                  .updateOrderStatus(
+                                                      item, 'iptal edildi');
+                                            }
+                                          },
+                                  ),
+                                  const SizedBox(width: 8),
+                                  IconButton(
+                                    style: IconButton.styleFrom(
+                                      backgroundColor: Colors.green[50],
+                                      minimumSize: const Size(36, 36),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                    icon: Icon(
+                                      Icons.check,
+                                      color: Colors.green[600],
+                                      size: 18,
+                                    ),
+                                    onPressed: isProcessing
+                                        ? null
+                                        : () async {
+                                            if (!mounted) return;
+                                            setState(() {
+                                              isProcessing = true;
+                                            });
+                                            try {
+                                              await ref
+                                                  .read(adminProvider.notifier)
+                                                  .updateOrderStatus(
+                                                      item, 'teslim edildi');
+                                              if (mounted) {
+                                                await Future.delayed(
+                                                    const Duration(
+                                                        milliseconds: 500));
+                                              }
+                                            } finally {
+                                              if (mounted) {
+                                                setState(() {
+                                                  isProcessing = false;
+                                                });
+                                              }
+                                            }
+                                          },
+                                  ),
+                                ],
+                              ),
+                            ],
+                            if (status == 'yeni') ...[
+                              const SizedBox(width: 8),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    style: IconButton.styleFrom(
+                                      backgroundColor: Colors.orange[50],
+                                      minimumSize: const Size(36, 36),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                    icon: Icon(
+                                      Icons.restaurant,
+                                      color: Colors.orange[600],
+                                      size: 18,
+                                    ),
+                                    onPressed: isProcessing
+                                        ? null
+                                        : () async {
+                                            if (item.id != null) {
+                                              await ref
+                                                  .read(adminProvider.notifier)
+                                                  .updateOrderStatus(
+                                                    item,
+                                                    nextStatus,
+                                                    orderType: 'Mutfak',
+                                                  );
+                                              await KitchenPrinterService
+                                                  .printKitchenOrder(
+                                                      item.toJson());
+                                            }
+                                          },
+                                  ),
+                                  const SizedBox(width: 8),
+                                  IconButton(
+                                    style: IconButton.styleFrom(
+                                      backgroundColor: Colors.purple[50],
+                                      minimumSize: const Size(36, 36),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                    icon: Icon(
+                                      Icons.local_bar,
+                                      color: Colors.purple[600],
+                                      size: 18,
+                                    ),
+                                    onPressed: isProcessing
+                                        ? null
+                                        : () async {
+                                            if (item.id != null) {
+                                              await ref
+                                                  .read(adminProvider.notifier)
+                                                  .updateOrderStatus(
+                                                    item,
+                                                    nextStatus,
+                                                    orderType: 'Bar',
+                                                  );
+                                              await BarPrinterService
+                                                  .printBarOrder(item.toJson());
+                                            }
+                                          },
+                                  ),
+                                  const SizedBox(width: 8),
+                                  IconButton(
+                                    style: IconButton.styleFrom(
+                                      backgroundColor: Colors.red[50],
+                                      minimumSize: const Size(36, 36),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                    icon: Icon(
+                                      Icons.cancel_outlined,
+                                      color: Colors.red[600],
+                                      size: 18,
+                                    ),
+                                    onPressed: isProcessing
+                                        ? null
+                                        : () async {
+                                            final bool? confirm =
+                                                await showDialog<bool>(
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                return Dialog(
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            20),
+                                                  ),
+                                                  child: Container(
+                                                    width: 400,
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            32),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              20),
+                                                    ),
+                                                    child: Column(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Row(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .spaceBetween,
+                                                          children: [
+                                                            Text(
+                                                              'Sipariş İptali',
+                                                              style: GoogleFonts
+                                                                  .poppins(
+                                                                fontSize: 24,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                                color: Colors
+                                                                    .black,
+                                                                letterSpacing:
+                                                                    -0.5,
+                                                              ),
+                                                            ),
+                                                            IconButton(
+                                                              onPressed: () =>
+                                                                  Navigator.pop(
+                                                                      context,
+                                                                      false),
+                                                              icon: Icon(
+                                                                Icons.close,
+                                                                color: Colors
+                                                                    .grey[400],
+                                                                size: 24,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        const SizedBox(
+                                                            height: 24),
+                                                        Text(
+                                                          'Bu siparişi iptal etmek istediğinizden emin misiniz?',
+                                                          style: GoogleFonts
+                                                              .poppins(
+                                                            fontSize: 16,
+                                                            color: Colors
+                                                                .grey[700],
+                                                          ),
+                                                        ),
+                                                        const SizedBox(
+                                                            height: 32),
+                                                        Row(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .end,
+                                                          children: [
+                                                            TextButton(
+                                                              onPressed: () =>
+                                                                  Navigator.pop(
+                                                                      context,
+                                                                      false),
+                                                              child: Text(
+                                                                'Vazgeç',
+                                                                style:
+                                                                    GoogleFonts
+                                                                        .poppins(
+                                                                  fontSize: 16,
+                                                                  color: Colors
+                                                                          .grey[
+                                                                      600],
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            const SizedBox(
+                                                                width: 16),
+                                                            ElevatedButton(
+                                                              style:
+                                                                  ElevatedButton
+                                                                      .styleFrom(
+                                                                backgroundColor:
+                                                                    Colors.red,
+                                                                padding:
+                                                                    const EdgeInsets
+                                                                        .symmetric(
+                                                                  horizontal:
+                                                                      24,
+                                                                  vertical: 12,
+                                                                ),
+                                                                shape:
+                                                                    RoundedRectangleBorder(
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              12),
+                                                                ),
+                                                              ),
+                                                              onPressed: () =>
+                                                                  Navigator.pop(
+                                                                      context,
+                                                                      true),
+                                                              child: Text(
+                                                                'İptal Et',
+                                                                style:
+                                                                    GoogleFonts
+                                                                        .poppins(
+                                                                  fontSize: 16,
+                                                                  color: Colors
+                                                                      .white,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            );
+
+                                            if (confirm == true &&
+                                                item.id != null) {
+                                              ref
+                                                  .read(adminProvider.notifier)
+                                                  .updateOrderStatus(
+                                                      item, 'iptal edildi');
+                                            }
+                                          },
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ],
+                        ),
+                      ))
+                  .toList(),
               // Hepsi Hazır butonu - sadece hazırlanıyor durumunda göster
               if (status == 'hazırlanıyor')
                 Padding(
                   padding: const EdgeInsets.only(top: 12),
-                                                  child: Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
-                                                    children: [
+                    children: [
                       ElevatedButton.icon(
                         onPressed: isProcessing
                             ? null
@@ -814,23 +962,30 @@ class _AdminViewState extends ConsumerState<AdminView> {
                                 });
                                 try {
                                   // Gruptaki tüm siparişleri hazır yap - paralel işlem
-                                  final batchSize = 5; // Her batch'te işlenecek sipariş sayısı
+                                  final batchSize =
+                                      5; // Her batch'te işlenecek sipariş sayısı
                                   final totalOrders = groupOrders.length;
-                                  
-                                  for (var i = 0; i < totalOrders; i += batchSize) {
-                                    final end = (i + batchSize < totalOrders) ? i + batchSize : totalOrders;
+
+                                  for (var i = 0;
+                                      i < totalOrders;
+                                      i += batchSize) {
+                                    final end = (i + batchSize < totalOrders)
+                                        ? i + batchSize
+                                        : totalOrders;
                                     final batch = groupOrders.sublist(i, end);
-                                    
+
                                     // Her batch'i paralel olarak işle
                                     await Future.wait(
-                                      batch.map((order) => 
-                                        ref.read(adminProvider.notifier).updateOrderStatus(order, 'teslim edildi')
-                                      ),
+                                      batch.map((order) => ref
+                                          .read(adminProvider.notifier)
+                                          .updateOrderStatus(
+                                              order, 'teslim edildi')),
                                     );
                                   }
-                                  
+
                                   if (mounted) {
-                                    await Future.delayed(const Duration(milliseconds: 300));
+                                    await Future.delayed(
+                                        const Duration(milliseconds: 300));
                                   }
                                 } finally {
                                   if (mounted) {
@@ -843,12 +998,13 @@ class _AdminViewState extends ConsumerState<AdminView> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,
                           elevation: 0,
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        icon: Icon(
+                        icon: const Icon(
                           Icons.done_all,
                           size: 20,
                           color: Colors.white,
@@ -860,13 +1016,13 @@ class _AdminViewState extends ConsumerState<AdminView> {
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
                           ),
-                    ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-        ],
-      ),
+                ),
+            ],
+          ),
         );
       },
     );
@@ -939,7 +1095,8 @@ class _AdminViewState extends ConsumerState<AdminView> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.inbox_outlined, size: 36, color: Colors.grey[400]),
+                          Icon(Icons.inbox_outlined,
+                              size: 36, color: Colors.grey[400]),
                           const SizedBox(height: 6),
                           Text(
                             'Şu anda siparişiniz yok',
@@ -1091,7 +1248,8 @@ class _AdminViewState extends ConsumerState<AdminView> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       'Sipariş İptali',
@@ -1103,7 +1261,8 @@ class _AdminViewState extends ConsumerState<AdminView> {
                                       ),
                                     ),
                                     IconButton(
-                                      onPressed: () => Navigator.pop(context, false),
+                                      onPressed: () =>
+                                          Navigator.pop(context, false),
                                       icon: Icon(
                                         Icons.close,
                                         color: Colors.grey[400],
@@ -1125,7 +1284,8 @@ class _AdminViewState extends ConsumerState<AdminView> {
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
                                     TextButton(
-                                      onPressed: () => Navigator.pop(context, false),
+                                      onPressed: () =>
+                                          Navigator.pop(context, false),
                                       child: Text(
                                         'Vazgeç',
                                         style: GoogleFonts.poppins(
@@ -1143,10 +1303,12 @@ class _AdminViewState extends ConsumerState<AdminView> {
                                           vertical: 12,
                                         ),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                         ),
                                       ),
-                                      onPressed: () => Navigator.pop(context, true),
+                                      onPressed: () =>
+                                          Navigator.pop(context, true),
                                       child: Text(
                                         'İptal Et',
                                         style: GoogleFonts.poppins(
@@ -1165,7 +1327,9 @@ class _AdminViewState extends ConsumerState<AdminView> {
                     );
 
                     if (confirm == true && item.id != null) {
-                      ref.read(adminProvider.notifier).updateOrderStatus(item, 'iptal edildi');
+                      ref
+                          .read(adminProvider.notifier)
+                          .updateOrderStatus(item, 'iptal edildi');
                     }
                   },
           ),
@@ -1209,7 +1373,8 @@ class _AdminViewState extends ConsumerState<AdminView> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
                                           'Sipariş İptali',
@@ -1221,7 +1386,8 @@ class _AdminViewState extends ConsumerState<AdminView> {
                                           ),
                                         ),
                                         IconButton(
-                                          onPressed: () => Navigator.pop(context, false),
+                                          onPressed: () =>
+                                              Navigator.pop(context, false),
                                           icon: Icon(
                                             Icons.close,
                                             color: Colors.grey[400],
@@ -1243,7 +1409,8 @@ class _AdminViewState extends ConsumerState<AdminView> {
                                       mainAxisAlignment: MainAxisAlignment.end,
                                       children: [
                                         TextButton(
-                                          onPressed: () => Navigator.pop(context, false),
+                                          onPressed: () =>
+                                              Navigator.pop(context, false),
                                           child: Text(
                                             'Vazgeç',
                                             style: GoogleFonts.poppins(
@@ -1261,10 +1428,12 @@ class _AdminViewState extends ConsumerState<AdminView> {
                                               vertical: 12,
                                             ),
                                             shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(12),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
                                             ),
                                           ),
-                                          onPressed: () => Navigator.pop(context, true),
+                                          onPressed: () =>
+                                              Navigator.pop(context, true),
                                           child: Text(
                                             'İptal Et',
                                             style: GoogleFonts.poppins(

@@ -611,29 +611,76 @@ class _BillViewState extends ConsumerState<BillView>
                                                           TextOverflow.ellipsis,
                                                       maxLines: 1,
                                                     ),
-                                                    subtitle: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
+                                                    subtitle: Row(
                                                       children: [
-                                                        Text(
-                                                          '${item.piece ?? 1} adet',
-                                                          style: TextStyle(
-                                                            fontSize: 12,
-                                                            color: Colors
-                                                                .grey.shade600,
-                                                          ),
-                                                        ),
-                                                        Text(
-                                                          '₺${(item.price ?? 0) * (item.piece ?? 1)}',
-                                                          style: TextStyle(
-                                                            fontSize: 12,
-                                                            color: Colors
-                                                                .grey.shade700,
-                                                            fontWeight:
-                                                                FontWeight.w500,
+                                                        Expanded(
+                                                          child: Row(
+                                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                            children: [
+                                                              // Sol taraftaki bilgiler
+                                                              Row(
+                                                                children: [
+                                                                  Container(
+                                                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                                    decoration: BoxDecoration(
+                                                                      color: Colors.grey.shade100,
+                                                                      borderRadius: BorderRadius.circular(4),
+                                                                    ),
+                                                                    child: Text(
+                                                                      '${item.piece ?? 1} adet',
+                                                                      style: TextStyle(
+                                                                        fontSize: 12,
+                                                                        color: Colors.grey.shade700,
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                  if (item.preparationTime != null) ...[
+                                                                    const SizedBox(width: 8),
+                                                                    Container(
+                                                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                                      decoration: BoxDecoration(
+                                                                        color: Colors.blue.shade50,
+                                                                        borderRadius: BorderRadius.circular(4),
+                                                                      ),
+                                                                      child: Row(
+                                                                        mainAxisSize: MainAxisSize.min,
+                                                                        children: [
+                                                                          Icon(
+                                                                            Icons.access_time,
+                                                                            size: 12,
+                                                                            color: Colors.blue.shade700,
+                                                                          ),
+                                                                          const SizedBox(width: 4),
+                                                                          Text(
+                                                                            _formatPreparationTime(item.preparationTime!),
+                                                                            style: TextStyle(
+                                                                              fontSize: 12,
+                                                                              color: Colors.blue.shade700,
+                                                                            ),
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ],
+                                                              ),
+                                                              // Sağ taraftaki tutar
+                                                              Container(
+                                                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                                decoration: BoxDecoration(
+                                                                  color: Colors.orange.shade50,
+                                                                  borderRadius: BorderRadius.circular(4),
+                                                                ),
+                                                                child: Text(
+                                                                  '₺${(item.price ?? 0) * (item.piece ?? 1)}',
+                                                                  style: TextStyle(
+                                                                    fontSize: 12,
+                                                                    color: Colors.orange.shade800,
+                                                                    fontWeight: FontWeight.w500,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ],
                                                           ),
                                                         ),
                                                       ],
@@ -1827,5 +1874,10 @@ class _BillViewState extends ConsumerState<BillView>
         });
       }
     }
+  }
+
+  String _formatPreparationTime(DateTime time) {
+    final localTime = time.toLocal();
+    return '${localTime.hour.toString().padLeft(2, '0')}:${localTime.minute.toString().padLeft(2, '0')}';
   }
 }
