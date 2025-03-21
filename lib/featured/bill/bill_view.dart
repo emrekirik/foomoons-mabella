@@ -709,21 +709,21 @@ class _BillViewState extends ConsumerState<BillView>
                                                                     ],
                                                                   ],
                                                                 ),
-                                                                
-                                                                // Price
-                                                                Text(
-                                                                  '₺${(item.price ?? 0) * (item.piece ?? 1)}',
-                                                                  style: TextStyle(
-                                                                    fontSize: 12,
-                                                                    fontWeight: FontWeight.w500,
-                                                                    color: Colors.grey.shade800,
-                                                                  ),
-                                                                ),
                                                               ],
                                                             ),
                                                           ],
                                                         ),
                                                       ),
+                                                      
+                                                      Text(
+                                                        '₺${(item.price ?? 0) * (item.piece ?? 1)}',
+                                                        style: TextStyle(
+                                                          fontSize: 14,
+                                                          fontWeight: FontWeight.w500,
+                                                          color: Colors.grey.shade800,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(width: 8),
                                                       
                                                       // Delete button (when not in multiselect mode)
                                                       if (!isMultiSelectMode)

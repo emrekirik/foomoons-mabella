@@ -10,6 +10,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class MenuNotifier extends StateNotifier<MenuState> {
   static const String allCategories = 'Tüm Kategoriler';
@@ -307,70 +308,34 @@ class MenuNotifier extends StateNotifier<MenuState> {
     );
   }
 
-  // Web ortamı için resim seçip yükleme işlemi
-  Future<void> pickAndUploadImage() async {
+  Future<String?> pickImage() async {
     try {
-      // Oturum açmış olan kullanıcıyı alıyoruz
-      final User? currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser == null) {
-        throw Exception('Kullanıcı oturum açmamış');
+      final imagePicker = ImagePicker();
+      final pickedFile = await imagePicker.pickImage(source: ImageSource.gallery);
+      
+      if (pickedFile == null) {
+        return null;
       }
 
-      // Galeriden bir resim seçiyoruz
-      final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-      if (pickedFile != null) {
-        // Yükleme işlemine başlıyoruz
-        state = state.copyWith(isUploading: true);
+      final file = File(pickedFile.path);
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final path = 'menu_images/$timestamp.jpg';
 
-        // Seçilen dosya File değil, XFile olduğu için web'de direkt XFile'dan yükleme yapıyoruz
-        final String fileName =
-            'product_pictures/${currentUser.uid}_${DateTime.now().millisecondsSinceEpoch}.jpg';
-
-        // Firebase Storage'a dosyayı yüklüyoruz
-        UploadTask uploadTask = FirebaseStorage.instance
-            .ref()
-            .child(fileName)
-            .putData(await pickedFile
-                .readAsBytes()); // Web'de readAsBytes() kullanıyoruz
-
-        TaskSnapshot snapshot = await uploadTask;
-        String downloadURL = await snapshot.ref.getDownloadURL();
-
-        // Firestore'da profil resmi URL'sini güncelle
-        await updateProfilePhotoURL(downloadURL, currentUser.uid);
+      try {
+        final ref = FirebaseStorage.instance.ref().child(path);
+        final uploadTask = ref.putFile(file);
+        
+        final snapshot = await uploadTask;
+        final downloadURL = await snapshot.ref.getDownloadURL();
+        
+        return downloadURL;
+      } catch (e) {
+        print('Resim yükleme hatası: $e');
+        rethrow;
       }
-    } catch (e, stackTrace) {
-      print('Fotoğraf seçilirken hata oluştu: $e');
-      print('Hata Yığını: $stackTrace');
-    } finally {
-      // Yükleme tamamlandı, durumu güncelle
-      state = state.copyWith(isUploading: false);
-    }
-  }
-
-  Future<void> updateProfilePhotoURL(String photoURL, String userId) async {
-    try {
-      final documentRef =
-          FirebaseFirestore.instance.collection('productImage').doc(userId);
-
-      final docSnapshot = await documentRef.get();
-
-      if (docSnapshot.exists) {
-        // Eğer belge mevcutsa, photoURL'yi güncelle
-        await documentRef.update({
-          'photoURL': photoURL,
-        });
-      } else {
-        // Eğer belge yoksa, photoURL ile yeni bir belge oluştur
-        await documentRef.set({
-          'photoURL': photoURL,
-        });
-      }
-
-      // Lokal durumu güncelle
-      state = state.copyWith(photoURL: photoURL);
     } catch (e) {
-      print('Profil fotoğrafı güncellenirken hata oluştu: $e');
+      print('Resim seçme hatası: $e');
+      rethrow;
     }
   }
 
@@ -389,10 +354,6 @@ class MenuNotifier extends StateNotifier<MenuState> {
     state = const MenuState(); // Reset to the initial state
   }
 
-  void resetPhotoUrl() {
-    state = state.copyWith(photoURL: null);
-  }
-
   void invalidateCache() {
     _lastFetchTime = null;
   }
@@ -405,9 +366,7 @@ class MenuState extends Equatable {
       this.selectedValue,
       this.tables,
       this.tableBills = const {},
-      this.stockWarning,
-      this.isUploading = false,
-      this.photoURL});
+      this.stockWarning});
 
   final List<Menu>? products;
   final List<Category>? categories;
@@ -415,8 +374,6 @@ class MenuState extends Equatable {
   final List<CoffeTable>? tables;
   final Map<int, List<Menu>> tableBills;
   final String? stockWarning;
-  final bool isUploading;
-  final String? photoURL;
 
   @override
   List<Object?> get props => [
@@ -426,8 +383,6 @@ class MenuState extends Equatable {
         tables,
         tableBills,
         stockWarning,
-        isUploading,
-        photoURL
       ];
 
   MenuState copyWith({
@@ -437,8 +392,6 @@ class MenuState extends Equatable {
     List<CoffeTable>? tables,
     Map<int, List<Menu>>? tableBills,
     String? stockWarning,
-    bool? isUploading,
-    String? photoURL,
   }) {
     return MenuState(
       products: products ?? this.products,
@@ -447,8 +400,6 @@ class MenuState extends Equatable {
       tables: tables ?? this.tables,
       tableBills: tableBills ?? this.tableBills,
       stockWarning: stockWarning ?? this.stockWarning,
-      isUploading: isUploading ?? this.isUploading,
-      photoURL: photoURL ?? this.photoURL,
     );
   }
 }

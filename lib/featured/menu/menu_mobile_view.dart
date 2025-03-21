@@ -28,6 +28,7 @@ class _MenuMobileViewState extends ConsumerState<MenuMobileView> {
   String searchQuery = '';
   bool isUploading = false;
   String? orderType;
+  String? imageUrl;
 
   void _showTopSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -312,18 +313,28 @@ class _MenuMobileViewState extends ConsumerState<MenuMobileView> {
                         ),
                         const Divider(),
                         const SizedBox(height: 20),
-                        /* Center(
+                        Center(
                           child: GestureDetector(
                             onTap: () async {
                               setState(() {
                                 isUploading = true;
                               });
-                              await ref
-                                  .read(menuProvider.notifier)
-                                  .pickAndUploadImage();
-                              setState(() {
-                                isUploading = false;
-                              });
+                              try {
+                                final url = await ref.read(menuProvider.notifier).pickImage();
+                                setState(() {
+                                  imageUrl = url;
+                                  isUploading = false;
+                                });
+                              } catch (e) {
+                                setState(() {
+                                  isUploading = false;
+                                });
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Resim yükleme hatası: $e')),
+                                  );
+                                }
+                              }
                             },
                             child: Stack(
                               alignment: Alignment.center,
@@ -341,10 +352,9 @@ class _MenuMobileViewState extends ConsumerState<MenuMobileView> {
                                   ),
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(75),
-                                    child: ref.watch(menuProvider).photoURL !=
-                                            null
+                                    child: imageUrl != null
                                         ? Image.network(
-                                            ref.watch(menuProvider).photoURL!,
+                                            imageUrl!,
                                             fit: BoxFit.cover,
                                           )
                                         : Icon(
@@ -360,7 +370,7 @@ class _MenuMobileViewState extends ConsumerState<MenuMobileView> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 30), */
+                        const SizedBox(height: 30),
                         Text(
                           'Ürün İsmi',
                           style: GoogleFonts.poppins(
@@ -562,8 +572,7 @@ class _MenuMobileViewState extends ConsumerState<MenuMobileView> {
                                           price: double.tryParse(
                                                   priceController.text) ??
                                               0.0,
-                                          image:
-                                              ref.watch(menuProvider).photoURL,
+                                          image: imageUrl,
                                           category: categoryController.text,
                                           orderType: orderType,
                                         );
