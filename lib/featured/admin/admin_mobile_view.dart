@@ -99,7 +99,6 @@ class _AdminMobileViewState extends ConsumerState<AdminMobileView> {
                   'hazırlanıyor',
                   menus,
                   'yeni',
-                  showRefresh: true,
                 ),
               if (_selectedOrderType == 'Hazırlanıyor')
                 _buildOrderColumn(
@@ -109,11 +108,16 @@ class _AdminMobileViewState extends ConsumerState<AdminMobileView> {
                   'teslim edildi',
                   menus,
                   'hazırlanıyor',
-                  showRefresh: false,
                 ),
               if (_selectedOrderType == 'Geçmiş Siparişler')
-                _buildOrderColumn(context, 'Geçmiş Siparişler', pastOrders, '',
-                    menus, 'hazır', showRefresh: false),
+                _buildOrderColumn(
+                  context, 
+                  'Geçmiş Siparişler', 
+                  pastOrders, 
+                  '',
+                  menus, 
+                  'hazır'
+                ),
             ],
           ),
         ),
@@ -127,9 +131,8 @@ class _AdminMobileViewState extends ConsumerState<AdminMobileView> {
     List orders,
     String nextStatus,
     List menus,
-    String status, {
-    bool showRefresh = false,
-  }) {
+    String status,
+  ) {
     final isLoading = ref.watch(loadingProvider);
     return Expanded(
       child: Container(
@@ -162,19 +165,17 @@ class _AdminMobileViewState extends ConsumerState<AdminMobileView> {
                       color: Color(0xFF2C3E50),
                     ),
                   ),
-                  if (showRefresh) ...[
-                    const SizedBox(width: 8),
-                    IconButton(
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      icon: AnimatedRotation(
-                        duration: const Duration(milliseconds: 1000),
-                        turns: isRefreshing ? 1 : 0,
-                        child: Icon(Icons.refresh, size: 20, color: Colors.grey[600]),
-                      ),
-                      onPressed: isRefreshing ? null : _refreshData,
+                  const SizedBox(width: 8),
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    icon: AnimatedRotation(
+                      duration: const Duration(milliseconds: 1000),
+                      turns: isRefreshing ? 1 : 0,
+                      child: Icon(Icons.refresh, size: 20, color: Colors.grey[600]),
                     ),
-                  ],
+                    onPressed: isRefreshing ? null : _refreshData,
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
