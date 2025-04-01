@@ -6,6 +6,8 @@ import 'package:foomoons/product/widget/person_mobile_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:foomoons/product/services/settings_service.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'dart:ui';
 
 class ReportsMobileView extends ConsumerStatefulWidget {
   const ReportsMobileView({super.key});
@@ -17,16 +19,12 @@ class ReportsMobileView extends ConsumerStatefulWidget {
 
 class _ReportsMobileViewState extends ConsumerState<ReportsMobileView> {
   String selectPeriod = 'Günlük';
-  final SettingsService _settingsService = SettingsService();
-  String? dayStartTime;
-  String? dayEndTime;
   int? _businessId;
 
   @override
   void initState() {
     super.initState();
     _loadBusinessId();
-    _loadTimeSettings();
     Future.microtask(() {
       if (mounted) {
         ref.read(reportsProvider.notifier).fetchAndLoad(selectPeriod);
@@ -41,78 +39,6 @@ class _ReportsMobileViewState extends ConsumerState<ReportsMobileView> {
       setState(() {
         _businessId = businessId;
       });
-    }
-  }
-
-  Future<void> _loadTimeSettings() async {
-    final startTime = await _settingsService.getDayStartTime();
-    final endTime = await _settingsService.getDayEndTime();
-    if (mounted) {
-      setState(() {
-        dayStartTime = startTime;
-        dayEndTime = endTime;
-      });
-    }
-  }
-
-  Future<void> _selectTime(BuildContext context, bool isStartTime) async {
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: isStartTime 
-          ? TimeOfDay.fromDateTime(DateTime.parse('2024-01-01 ${dayStartTime ?? "00:00"}:00'))
-          : TimeOfDay.fromDateTime(DateTime.parse('2024-01-01 ${dayEndTime ?? "23:59"}:00')),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            timePickerTheme: TimePickerThemeData(
-              backgroundColor: Colors.white,
-              hourMinuteColor: Colors.grey[200],
-              hourMinuteTextColor: Colors.black,
-              dialHandColor: Colors.orange,
-              dialBackgroundColor: Colors.grey[200],
-              dialTextColor: Colors.black,
-              entryModeIconColor: Colors.black,
-              dayPeriodTextColor: Colors.black,
-              helpTextStyle: const TextStyle(color: Colors.black),
-              dayPeriodBorderSide: const BorderSide(color: Colors.black),
-              dayPeriodColor: Colors.grey[200],
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
-            ),
-            colorScheme: const ColorScheme.light(
-              primary: Colors.orange,
-              onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: Colors.black,
-              onBackground: Colors.black,
-              onSecondary: Colors.black,
-            ),
-            textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.black,
-              ),
-            ),
-          ),
-          child: child!,
-        );
-      },
-      cancelText: "İPTAL",
-      confirmText: "TAMAM",
-      hourLabelText: "Saat",
-      minuteLabelText: "Dakika",
-    );
-
-    if (picked != null) {
-      final timeString = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
-      if (isStartTime) {
-        await _settingsService.setDayStartTime(timeString);
-        setState(() => dayStartTime = timeString);
-      } else {
-        await _settingsService.setDayEndTime(timeString);
-        setState(() => dayEndTime = timeString);
-      }
-      ref.read(reportsProvider.notifier).fetchAndLoad(selectPeriod);
     }
   }
 
@@ -136,87 +62,103 @@ class _ReportsMobileViewState extends ConsumerState<ReportsMobileView> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  const SizedBox(height: 20),
                   // Zaman ayarları ve periyot seçici
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Zaman ayarları
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          TextButton.icon(
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 8),
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            ),
-                            onPressed: () => _selectTime(context, true),
-                            icon: const Icon(Icons.access_time, size: 16, color: Colors.black),
-                            label: Text(
-                              dayStartTime ?? 'Başlangıç',
-                              style: const TextStyle(fontSize: 12, color: Colors.black),
-                            ),
-                          ),
-                          const Text('-', style: TextStyle(fontSize: 12, color: Colors.black)),
-                          TextButton.icon(
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 8),
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            ),
-                            onPressed: () => _selectTime(context, false),
-                            icon: const Icon(Icons.access_time, size: 16, color: Colors.black),
-                            label: Text(
-                              dayEndTime ?? 'Bitiş',
-                              style: const TextStyle(fontSize: 12, color: Colors.black),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(width: 12),
-                      // Periyot seçici
-                      Container(
-                        width: 120,
-                        height: 32,
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(7),
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade200),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            dropdownColor: Colors.grey.shade100,
-                            value: selectPeriod,
-                            icon: const Icon(
-                              Icons.arrow_drop_down,
-                              color: Colors.blue,
-                              size: 20,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.schedule,
+                                  size: 16,
+                                  color: Colors.grey.shade700,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  '06:00 - 05:59',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.grey.shade700,
+                                  ),
+                                ),
+                              ],
                             ),
-                            isDense: true,
-                            style: const TextStyle(
-                              color: Colors.black,
-                              fontSize: 12,
+                            Row(
+                              children: [
+                                Container(
+                                  height: 28,
+                                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade50,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: Colors.grey.shade200),
+                                  ),
+                                  child: DropdownButtonHideUnderline(
+                                    child: DropdownButton<String>(
+                                      value: selectPeriod,
+                                      icon: Icon(
+                                        Icons.arrow_drop_down,
+                                        color: Colors.grey.shade700,
+                                        size: 16,
+                                      ),
+                                      isDense: true,
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.grey.shade800,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      onChanged: (String? newValue) {
+                                        if (newValue != null) {
+                                          setState(() {
+                                            selectPeriod = newValue;
+                                          });
+                                          ref.read(reportsProvider.notifier).fetchAndLoad(newValue);
+                                        }
+                                      },
+                                      items: <String>['Aylık', 'Haftalık', 'Günlük']
+                                          .map<DropdownMenuItem<String>>((String value) {
+                                        return DropdownMenuItem<String>(
+                                          value: value,
+                                          child: Text(value),
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade50.withOpacity(0.7),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    _getPeriodRangeText(),
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 11,
+                                      color: Colors.grey.shade600,
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                            onChanged: (String? newValue) {
-                              if (newValue != null) {
-                                setState(() {
-                                  selectPeriod = newValue;
-                                });
-                                ref.read(reportsProvider.notifier).fetchAndLoad(newValue);
-                              }
-                            },
-                            items: <String>['Aylık', 'Haftalık', 'Günlük']
-                                .map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
-                          ),
+                          ],
                         ),
                       ),
-                    ],
+                    ),
                   ),
                   const SizedBox(height: 20),
                   gridAnalysisCard(reportsState, sizeWidth, employees, constraints, dailyStats),
@@ -227,6 +169,19 @@ class _ReportsMobileViewState extends ConsumerState<ReportsMobileView> {
         );
       },
     );
+  }
+
+  String _getPeriodRangeText() {
+    switch (selectPeriod) {
+      case 'Aylık':
+        return '(01 - 30/31)';
+      case 'Haftalık':
+        return 'Son 7 Gün';
+      case 'Günlük':
+        return '(Bugün)';
+      default:
+        return '';
+    }
   }
 
   Column gridAnalysisCard(

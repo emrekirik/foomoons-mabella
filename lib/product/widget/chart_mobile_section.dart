@@ -206,10 +206,27 @@ class _ChartMobileSectionState extends State<ChartMobileSection> {
                         ),
                         children: [
                           TextSpan(
-                            text: '${stats.totalRevenue}₺',
+                            text: 'Toplam: ${stats.totalRevenue}₺\n',
                             style: const TextStyle(
-                              color: Colors.yellowAccent,
+                              color: Colors.white,
                               fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          TextSpan(
+                            text: 'Kredi: ${stats.creditTotal}₺\n',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                          TextSpan(
+                            text: 'Nakit: ${stats.cashTotal}₺',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w400,
                             ),
                           ),
                         ],
