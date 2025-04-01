@@ -283,10 +283,9 @@ class _TablesMobileViewState extends ConsumerState<TablesMobileView> {
                                 color: Colors.white,
                                   borderRadius: const BorderRadius.all(
                                       Radius.circular(12)),
-                                  image: const DecorationImage(
-                                    image: AssetImage(
-                                        "assets/images/table_icon.png"),
-                                    fit: BoxFit.cover,
+                                  border: Border.all(
+                                    color: Colors.grey.shade300,
+                                    width: 1,
                                   ),
                        /*            boxShadow: [
                                     BoxShadow(
@@ -351,14 +350,14 @@ class _TablesMobileViewState extends ConsumerState<TablesMobileView> {
                                     )
                                   : Column(
                                       mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
+                                          MainAxisAlignment.center,
                                       children: [
-                                        const SizedBox(),
                                         Text(
                                           '${filteredTables[index].tableTitle}',
                                           style: const TextStyle(
                                               fontSize: 18.0,
                                               fontWeight: FontWeight.bold),
+                                          textAlign: TextAlign.center,
                                         ),
                                       ],
                                     )),
