@@ -8,6 +8,8 @@ import 'package:foomoons/product/model/menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:foomoons/product/providers/app_providers.dart';
+import 'package:foomoons/product/enums/table_sort_type.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// MenuView Widget
 class TablesMobileView extends ConsumerStatefulWidget {
@@ -25,10 +27,13 @@ class _TablesMobileViewState extends ConsumerState<TablesMobileView> {
   late double remainingAmount;
   final Set<int> processedTables = {};
   bool isRefreshing = false;
+  TableSortType currentSortType = TableSortType.defaultSort;
+  static const String _sortPreferenceKey = 'table_sort_preference';
 
   @override
   void initState() {
     super.initState();
+    _loadSortPreference();
     _fetchData();
   }
 
@@ -38,6 +43,24 @@ class _TablesMobileViewState extends ConsumerState<TablesMobileView> {
     _fetchData();
     // Tüm masaların verilerini yeniden çek
     processedTables.clear(); // İşlenmiş masaları temizle
+  }
+
+  Future<void> _loadSortPreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedSort = prefs.getString(_sortPreferenceKey);
+    if (savedSort != null) {
+      setState(() {
+        currentSortType = TableSortType.values.firstWhere(
+          (type) => type.toString() == savedSort,
+          orElse: () => TableSortType.defaultSort,
+        );
+      });
+    }
+  }
+
+  Future<void> _saveSortPreference(TableSortType type) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_sortPreferenceKey, type.toString());
   }
 
   void _fetchData() {
@@ -91,6 +114,61 @@ class _TablesMobileViewState extends ConsumerState<TablesMobileView> {
     }
   }
 
+  List<dynamic> _sortTables(List<dynamic> tables) {
+    switch (currentSortType) {
+      case TableSortType.tableNumber:
+        return tables..sort((a, b) {
+          final aTitle = a.tableTitle ?? '';
+          final bTitle = b.tableTitle ?? '';
+          
+          // Farklı formatlardaki sayısal kısımları ayıkla
+          final regexPatterns = [
+            RegExp(r'C(\d+)$'),           // C1, C2 formatı için
+            RegExp(r'A-(\d+)$'),          // A-1, A-2 formatı için
+            RegExp(r'(\d+)$'),            // Sadece sayı olan format için
+          ];
+          
+          int? getNumber(String title) {
+            for (final pattern in regexPatterns) {
+              final match = pattern.firstMatch(title);
+              if (match != null) {
+                return int.parse(match.group(1)!);
+              }
+            }
+            return null;
+          }
+          
+          final aNum = getNumber(aTitle);
+          final bNum = getNumber(bTitle);
+          
+          if (aNum != null && bNum != null) {
+            // Her iki masada da sayısal kısım varsa, sayısal olarak karşılaştır
+            return aNum.compareTo(bNum);
+          }
+          
+          // Sayısal kısım yoksa veya karşılaştırılamıyorsa alfabetik sırala
+          return aTitle.compareTo(bTitle);
+        });
+      case TableSortType.totalAmount:
+        return tables..sort((a, b) {
+          final aBill = ref.read(tablesProvider.select((state) => state.getTableBill(a.id)))
+              .where((item) => item.isAmount != true)
+              .toList();
+          final bBill = ref.read(tablesProvider.select((state) => state.getTableBill(b.id)))
+              .where((item) => item.isAmount != true)
+              .toList();
+          
+          final aTotal = aBill.fold(0.0, (sum, item) => sum + ((item.price ?? 0) * (item.piece ?? 1)));
+          final bTotal = bBill.fold(0.0, (sum, item) => sum + ((item.price ?? 0) * (item.piece ?? 1)));
+          
+          return bTotal.compareTo(aTotal); // En yüksek tutardan en düşüğe
+        });
+      case TableSortType.defaultSort:
+      default:
+        return tables;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // final authState = ref.watch(authStateProvider);
@@ -101,11 +179,10 @@ class _TablesMobileViewState extends ConsumerState<TablesMobileView> {
     final areas = ref.watch(tablesProvider).areas ?? [];
     final selectedArea = ref.watch(tablesProvider).selectedValue;
 
-    final filteredTables = tables.where((item) {
-      final isAreaMatch =
-          item.area?.trim().toLowerCase() == selectedArea?.trim().toLowerCase();
+    final filteredTables = _sortTables(tables.where((item) {
+      final isAreaMatch = item.area?.trim().toLowerCase() == selectedArea?.trim().toLowerCase();
       return isAreaMatch;
-    }).toList();
+    }).toList());
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -171,6 +248,35 @@ class _TablesMobileViewState extends ConsumerState<TablesMobileView> {
                         child: Icon(Icons.refresh, size: 20, color: Colors.grey[600]),
                       ),
                       onPressed: isRefreshing ? null : _refreshData,
+                    ),
+                    PopupMenuButton<TableSortType>(
+                      onSelected: (TableSortType value) {
+                        setState(() {
+                          currentSortType = value;
+                        });
+                        _saveSortPreference(value);
+                      },
+                      itemBuilder: (BuildContext context) {
+                        return TableSortType.values.map((type) {
+                          String title;
+                          switch (type) {
+                            case TableSortType.tableNumber:
+                              title = 'Masa Numarası';
+                              break;
+                            case TableSortType.totalAmount:
+                              title = 'Toplam Tutar';
+                              break;
+                            case TableSortType.defaultSort:
+                              title = 'Varsayılan';
+                              break;
+                          }
+                          return PopupMenuItem<TableSortType>(
+                            value: type,
+                            child: Text(title),
+                          );
+                        }).toList();
+                      },
+                      icon: const Icon(Icons.sort),
                     ),
                     PopupMenuButton<String>(
                       onSelected: (String value) {
