@@ -29,11 +29,14 @@ class _TablesMobileViewState extends ConsumerState<TablesMobileView> {
   bool isRefreshing = false;
   TableSortType currentSortType = TableSortType.defaultSort;
   static const String _sortPreferenceKey = 'table_sort_preference';
+  static const String _areaOrderPreferenceKey = 'area_order_preference';
+  List<String> areaOrder = [];
 
   @override
   void initState() {
     super.initState();
     _loadSortPreference();
+    _loadAreaOrder();
     _fetchData();
   }
 
@@ -61,6 +64,21 @@ class _TablesMobileViewState extends ConsumerState<TablesMobileView> {
   Future<void> _saveSortPreference(TableSortType type) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_sortPreferenceKey, type.toString());
+  }
+
+  Future<void> _loadAreaOrder() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedOrder = prefs.getStringList(_areaOrderPreferenceKey);
+    if (savedOrder != null) {
+      setState(() {
+        areaOrder = savedOrder;
+      });
+    }
+  }
+
+  Future<void> _saveAreaOrder(List<String> order) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_areaOrderPreferenceKey, order);
   }
 
   void _fetchData() {
@@ -179,6 +197,18 @@ class _TablesMobileViewState extends ConsumerState<TablesMobileView> {
     final areas = ref.watch(tablesProvider).areas ?? [];
     final selectedArea = ref.watch(tablesProvider).selectedValue;
 
+    // Bölgeleri sıralı şekilde al
+    List<dynamic> sortedAreas = [...areas];
+    if (areaOrder.isNotEmpty) {
+      sortedAreas.sort((a, b) {
+        final aIndex = areaOrder.indexOf(a.title ?? '');
+        final bIndex = areaOrder.indexOf(b.title ?? '');
+        if (aIndex == -1) return 1; // Yeni eklenen bölgeler sona gitsin
+        if (bIndex == -1) return -1;
+        return aIndex.compareTo(bIndex);
+      });
+    }
+
     final filteredTables = _sortTables(tables.where((item) {
       final isAreaMatch = item.area?.trim().toLowerCase() == selectedArea?.trim().toLowerCase();
       return isAreaMatch;
@@ -195,46 +225,59 @@ class _TablesMobileViewState extends ConsumerState<TablesMobileView> {
                 Expanded(
                   child: SizedBox(
                     height: 50,
-                    child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemBuilder: (context, index) {
-                          final area = areas[index];
-                          return Container(
-                            width: 120,
-                            decoration: BoxDecoration(
-                              border: Border(
-                                left: const BorderSide(
-                                    color: Colors.black12, width: 1),
-                                bottom: BorderSide(
-                                  color: selectedArea == area.title
-                                      ? Colors.orange
-                                      : Colors
-                                          .transparent, // Seçili kategori altına çizgi ekle
-                                  width: 5, // Çizginin kalınlığı
+                    child: ReorderableListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      onReorder: (oldIndex, newIndex) {
+                        setState(() {
+                          if (oldIndex < newIndex) {
+                            newIndex -= 1;
+                          }
+                          final item = sortedAreas.removeAt(oldIndex);
+                          sortedAreas.insert(newIndex, item);
+                          
+                          // Yeni sıralamayı kaydet
+                          areaOrder = sortedAreas.map((area) => area.title?.toString() ?? '').toList();
+                          _saveAreaOrder(areaOrder);
+                        });
+                      },
+                      itemBuilder: (context, index) {
+                        final area = sortedAreas[index];
+                        return Container(
+                          key: ValueKey(area.title),
+                          width: 120,
+                          decoration: BoxDecoration(
+                            border: Border(
+                              left: const BorderSide(
+                                  color: Colors.black12, width: 1),
+                              bottom: BorderSide(
+                                color: selectedArea == area.title
+                                    ? Colors.orange
+                                    : Colors.transparent,
+                                width: 5,
+                              ),
+                            ),
+                          ),
+                          child: Material(
+                            color: ColorConstants.white,
+                            child: InkWell(
+                              splashColor: Colors.orange.withOpacity(0.6),
+                              onTap: () {
+                                tablesNotifier.selectArea(area.title);
+                              },
+                              child: Center(
+                                child: Text(
+                                  area.title ?? '',
+                                  style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold),
                                 ),
                               ),
                             ),
-                            child: Material(
-                              color: ColorConstants.white,
-                              child: InkWell(
-                                splashColor:
-                                    Colors.orange.withOpacity(0.6),
-                                onTap: () {
-                                  tablesNotifier.selectArea(area.title);
-                                },
-                                child: Center(
-                                  child: Text(
-                                    area.title ?? '',
-                                    style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                        itemCount: areas.length),
+                          ),
+                        );
+                      },
+                      itemCount: sortedAreas.length,
+                    ),
                   ),
                 ),
                 Row(
