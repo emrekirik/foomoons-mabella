@@ -314,6 +314,7 @@ class _AdminMobileViewState extends ConsumerState<AdminMobileView> {
     return Builder(
       builder: (context) => InkWell(
         onTap: () {
+          // Tarih için tooltip
           if (value.contains('...')) {
             final RenderBox box = context.findRenderObject() as RenderBox;
             final Offset position = box.localToGlobal(Offset.zero);
@@ -358,6 +359,48 @@ class _AdminMobileViewState extends ConsumerState<AdminMobileView> {
               overlayEntry.remove();
             });
           }
+          // Masa ismi için tooltip
+          else if (icon == Icons.table_restaurant && value.length > 15) {
+            final RenderBox box = context.findRenderObject() as RenderBox;
+            final Offset position = box.localToGlobal(Offset.zero);
+            
+            OverlayEntry overlayEntry = OverlayEntry(
+              builder: (context) => Positioned(
+                left: position.dx,
+                top: position.dy - 40,
+                child: Material(
+                  color: Colors.transparent,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.black87,
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      value,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+
+            Overlay.of(context).insert(overlayEntry);
+
+            Future.delayed(const Duration(seconds: 2), () {
+              overlayEntry.remove();
+            });
+          }
         },
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -378,6 +421,8 @@ class _AdminMobileViewState extends ConsumerState<AdminMobileView> {
                           : null,
                 ),
                 overflow: TextOverflow.ellipsis,
+                maxLines: 2,
+                softWrap: true,
               ),
             ),
           ],
@@ -387,6 +432,22 @@ class _AdminMobileViewState extends ConsumerState<AdminMobileView> {
   }
 
   Widget _buildActionButtonsRow(item, String nextStatus, String status) {
+    final userType = ref.watch(userTypeProvider).value ?? 'kafe';
+    
+    if (userType == 'garson') {
+      // For waiters, show order status information
+      return _buildOrderDetailTile(
+        '',
+        item.status ?? 'Beklemede',
+        item.status == 'teslim edildi' 
+            ? Icons.check_circle_outline 
+            : item.status == 'iptal edildi'
+                ? Icons.cancel_outlined
+                : Icons.access_time
+      );
+    }
+
+    // For other user types, show action buttons as before
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       mainAxisSize: MainAxisSize.min,
@@ -400,7 +461,7 @@ class _AdminMobileViewState extends ConsumerState<AdminMobileView> {
             onPressed: () {
               print('item id ${item.id}');
               if (item.id != null) {
-                ref.read(adminProvider.notifier).updateOrderStatus(item, nextStatus);
+                ref.read(adminProvider.notifier).updateOrderStatus(item, nextStatus, orderType: item.orderType ?? 'Bar');
               }
             },
             tooltip: 'Onayla',
@@ -413,7 +474,7 @@ class _AdminMobileViewState extends ConsumerState<AdminMobileView> {
             color: Colors.red,
             onPressed: () {
               if (item.id != null) {
-                ref.read(adminProvider.notifier).updateOrderStatus(item, 'iptal edildi');
+                ref.read(adminProvider.notifier).updateOrderStatus(item, 'iptal edildi', orderType: item.orderType ?? 'Bar');
               }
             },
             tooltip: 'İptal Et',
@@ -428,7 +489,7 @@ class _AdminMobileViewState extends ConsumerState<AdminMobileView> {
                       isProcessing = true;
                     });
                     try {
-                       await ref.read(adminProvider.notifier).updateOrderStatus(item, nextStatus);
+                       await ref.read(adminProvider.notifier).updateOrderStatus(item, nextStatus, orderType: item.orderType ?? 'Bar');
                       await Future.delayed(const Duration(milliseconds: 500));
                     } finally {
                       setState(() {
@@ -441,7 +502,7 @@ class _AdminMobileViewState extends ConsumerState<AdminMobileView> {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
               minimumSize: const Size(60, 32),
             ),
-            child: Text(
+            child: const Text(
               'Hazır',
               style: TextStyle(
                 color: Colors.white,
