@@ -113,7 +113,7 @@ class OrderService {
         'orderType': order.orderType,
         'sender': order.sender,
       };
-      
+      print('🔄 Güncellenen sipariş: $requestBody');
       final response = await http.post(
         Uri.parse('$baseUrl/orders/update'),
         headers: {'Content-Type': 'application/json'},
