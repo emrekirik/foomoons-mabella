@@ -1,6 +1,7 @@
 import 'package:foomoons/featured/admin/admin_view.dart';
 import 'package:foomoons/featured/bill/bill_view.dart';
 import 'package:foomoons/featured/menu/menu_view.dart';
+import 'package:foomoons/featured/past_bills/past_bills_view.dart';
 import 'package:foomoons/featured/reports/reports_mobile_view.dart';
 import 'package:foomoons/product/constants/color_constants.dart';
 import 'package:foomoons/product/widget/custom_appbar.dart';
@@ -58,10 +59,12 @@ class _TabViewState extends ConsumerState<TabView> {
         _buildNavItem(Icons.restaurant_menu, 'Menu', 0, deviceWidth),
         if (isSelfService == false)
           _buildNavItem(Icons.monitor_rounded, 'Siparişler', 1, deviceWidth),
-        _buildNavItem(Icons.table_bar_outlined, 'Adisyonlar', isSelfService ? 1 : 2, deviceWidth),
-        /* _buildNavItem(Icons.article_outlined, 'Stok', 3, deviceWidth), */
-        _buildNavItem(
-            Icons.insert_chart_outlined_rounded, 'Raporlar', isSelfService ? 2 : 3, deviceWidth),
+        _buildNavItem(Icons.table_bar_outlined, 'Adisyonlar',
+            isSelfService ? 1 : 2, deviceWidth),
+        _buildNavItem(Icons.history, 'Geçmiş Adisyonlar', isSelfService ? 2 : 3,
+            deviceWidth),
+        _buildNavItem(Icons.insert_chart_outlined_rounded, 'Raporlar',
+            isSelfService ? 3 : 4, deviceWidth),
       ];
     } else {
       return []; // Desteklenmeyen kullanıcı tipi
@@ -100,6 +103,7 @@ class _TabViewState extends ConsumerState<TabView> {
       /* if (userType == 'kafe') const StockView(), */
       if (userType == 'kafe')
         deviceWidth < 800 ? const ReportsMobileView() : const ReportsView(),
+      const PastBillsView(),
     ];
     return pages;
   }

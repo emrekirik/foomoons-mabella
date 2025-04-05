@@ -263,42 +263,11 @@ class TableService {
     }
   }
 
-  Future<void> addToPastBillItems(Menu item) async {
-    try {
-      final businessId = await _authService.getValidatedBusinessId();
-
-      final url = Uri.parse('$baseUrl/PastBillItems/add');
-      final body = jsonEncode({
-        'category': item.category,
-        'isAmount': item.isAmount ?? false,
-        'isCredit': item.isCredit,
-        'piece': item.piece ?? 1,
-        'preparationTime': DateTime.now().toIso8601String(),
-        'price': item.price,
-        'title': item.title,
-        'businessId': businessId
-      });
-
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: body,
-      );
-
-      if (response.statusCode != 200) {
-        throw Exception(
-            'Geçmiş adisyon kalemlerine eklenirken hata oluştu: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Geçmiş adisyon kalemlerine eklenirken hata oluştu: $e');
-    }
-  }
-
   Future<bool> closeBill(int tableId) async {
     try {
       print('🔄 Masa #$tableId için adisyon kapatma işlemi başlatıldı');
       
-      // 1. Get current bill items
+      // Get current bill items to check if there's a bill to close
       final currentBill = await fetchTableBill(tableId);
       print('📋 Mevcut adisyon kalemleri getirildi: ${currentBill.length} adet ürün');
 
@@ -307,51 +276,35 @@ class TableService {
         return false;
       }
 
-      final billId = currentBill.first.billId;
-      print('🔑 Bill ID: $billId');
-
-      // 2. Add each item to past bill items in parallel
-      print('📥 Ürünler geçmiş adisyon kalemlerine aktarılıyor...');
-      await Future.wait(
-        currentBill.map((item) async {
-          await addToPastBillItems(item);
-          print('✅ "${item.title}" geçmiş kayıtlara eklendi');
+      final businessId = await _authService.getValidatedBusinessId();
+      
+      // Use the new API endpoint for closing bills
+      final response = await http.post(
+        Uri.parse('$baseUrl/ClosedBills/close-bill'),
+        headers: {
+          'accept': '*/*',
+          'Content-Type': 'application/json'
+        },
+        body: jsonEncode({
+          "tableId": tableId,
+          "businessId": businessId
         }),
       );
 
-      // 3. Delete each bill item in parallel
-      print('🗑️ Mevcut adisyon kalemleri siliniyor...');
-      final deleteItemFutures = currentBill.where((item) => item.id != null).map((item) async {
-        final deleteItemResponse = await http.post(
-          Uri.parse('$baseUrl/BillItems/deletebyid?id=${item.id}'),
-          headers: {'Content-Type': 'application/json'},
-        );
-
-        if (deleteItemResponse.statusCode != 200) {
-          throw Exception('Bill item silinemedi: ${item.id}');
-        }
-        print('✅ "${item.title}" adisyondan silindi');
-      });
-      
-      await Future.wait(deleteItemFutures);
-
-      // 4. Delete the bill itself
-      if (billId != null) {
-        print('🗑️ Ana adisyon siliniyor (ID: $billId)...');
-        final deleteBillResponse = await http.post(
-          Uri.parse('$baseUrl/bills/deletebyid?id=$billId'),
-        );
-
-        if (deleteBillResponse.statusCode != 200) {
-          throw Exception('Bill silinemedi');
-        }
-        print('✅ Ana adisyon başarıyla silindi');
-      } else {
-        throw Exception('Bill ID bulunamadı');
+      if (response.statusCode != 200) {
+        print('❌ Adisyon kapatılamadı (Status: ${response.statusCode})');
+        return false;
       }
 
-      print('✨ Masa #$tableId için adisyon kapatma işlemi başarıyla tamamlandı');
-      return true;
+      final responseData = jsonDecode(response.body);
+      if (responseData['success'] == true) {
+        print('✅ ${responseData['message']}');
+        print('✨ Masa #$tableId için adisyon kapatma işlemi başarıyla tamamlandı');
+        return true;
+      } else {
+        print('❌ Adisyon kapatılamadı: ${responseData['message']}');
+        return false;
+      }
     } catch (e) {
       print('❌ HATA: Adisyon kapatılırken bir sorun oluştu:');
       print('❌ $e');
@@ -375,7 +328,7 @@ class TableService {
           'isAmount': item.isAmount,
           'isCredit': item.isCredit,
           'piece': item.piece ?? 1,
-          'preparationTime': DateTime.now().toIso8601String(),
+          'preparationTime': item.preparationTime?.toIso8601String() ?? DateTime.now().toIso8601String(),
           'price': item.price,
           'status': item.status,
           'title': item.title,
@@ -388,7 +341,7 @@ class TableService {
           'isAmount': item.isAmount,
           'isCredit': item.isCredit,
           'piece': item.piece ?? 1,
-          'preparationTime': DateTime.now().toIso8601String(),
+          'preparationTime': item.preparationTime?.toIso8601String() ?? DateTime.now().toIso8601String(),
           'price': item.price,
           'status': item.status,
           'title': item.title,

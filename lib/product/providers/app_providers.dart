@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:foomoons/featured/providers/loading_notifier.dart';
+import 'package:foomoons/featured/providers/past_bills_notifier.dart';
 import 'package:foomoons/featured/providers/profile_notifier.dart';
 import 'package:foomoons/featured/providers/reports_notifier.dart';
 import 'package:foomoons/featured/providers/tables_notifier.dart';
@@ -8,6 +9,7 @@ import 'package:foomoons/featured/providers/login_notifier.dart';
 import 'package:foomoons/featured/providers/admin_notifier.dart';
 import 'package:foomoons/product/services/area_service.dart';
 import 'package:foomoons/product/services/auth_service.dart';
+import 'package:foomoons/product/services/past_bills_service.dart';
 import 'package:foomoons/product/services/report_service.dart';
 import 'package:foomoons/product/services/table_service.dart';
 import 'package:foomoons/product/services/product_service.dart';
@@ -72,6 +74,11 @@ final reportsProvider =
   return ReportsNotifier(ref);
 });
 
+// Past Bills provider
+final pastBillsProvider = StateNotifierProvider<PastBillsNotifier, PastBillsState>((ref) {
+  return PastBillsNotifier(ref);
+});
+
 // Service providers with factory
 final reportServiceProvider =
     ServiceProvider.withAuth((auth) => ReportService(authService: auth));
@@ -101,6 +108,9 @@ final loadingProvider =
     StateNotifierProvider<LoadingNotifier, LoadingState>((ref) {
   return LoadingNotifier();
 });
+
+final pastBillsServiceProvider = 
+    ServiceProvider.withAuth((auth) => PastBillsService(authService: auth));
 
 // User type provider
 final userTypeProvider = FutureProvider<String>((ref) async {
